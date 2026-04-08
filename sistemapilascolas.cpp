@@ -4,14 +4,29 @@
 
 using namespace std;
 
+struct nodoPila {
+    int dato;
+    nodoPila* siguientePila;
+};
+
+struct nodoCola {
+    int correlativo;
+    nodoCola* siguienteCola;
+};
+
+struct cola {
+    nodoCola* primero;
+    nodoCola* ultimo;
+};
+
 int menuprincipal();
-int submenu();
+int submenu(string titulo);
 void modulopila();
 void modulocola();
 void push();
 void pop();
-void encolar();
-void desencolar();
+void encolar(cola& q, int valor);
+int desencolar(cola& q);
 void portada();
 void color(int c);
 void cargando();
@@ -20,21 +35,18 @@ void modificarpila();
 void buscarpila();
 void buscarcola();
 void modificarcola();
-void mostrarcola();
+void mostrarcola(cola q);
 void pantallacarga(string modulo);
 
 
 int main()
 {
+    int op;
     portada();
     cargando();
-    menuprincipal();
-
-    int op;
 
     do {
         op = menuprincipal();
-
         switch (op) {
         case 0:
             pantallacarga("MODULO PILA");
@@ -163,6 +175,15 @@ int submenu(string titulo) {
 
         if (opcion == 1) {
             color(10);
+            cout << "   >>   [ ELIMINAR ]\n";
+        }
+        else {
+            color(8);
+            cout << "        Eliminar\n";
+        }
+
+        if (opcion == 2) {
+            color(10);
             cout << "   >>   [ MOSTRAR DATOS ]\n";
         }
         else {
@@ -170,7 +191,7 @@ int submenu(string titulo) {
             cout << "        Mostrar datos\n";
         }
 
-        if (opcion == 2) {
+        if (opcion == 3) {
             color(10);
             cout << "   >>   [ MODIFICAR ]\n";
         }
@@ -179,22 +200,13 @@ int submenu(string titulo) {
             cout << "        Modificar\n";
         }
 
-        if (opcion == 3) {
+        if (opcion == 4) {
             color(10);
             cout << "   >>   [ BUSCAR ]\n";
         }
         else {
             color(8);
             cout << "        Buscar\n";
-        }
-
-        if (opcion == 4) {
-            color(10);
-            cout << "   >>   [ ELIMINAR ]\n";
-        }
-        else {
-            color(8);
-            cout << "        Eliminar\n";
         }
 
         if (opcion == 5) {
@@ -243,30 +255,56 @@ void modulopila() {
 
 //----colas----
 void modulocola() {
+    cola q;
+    q.primero = NULL;
+    q.ultimo = NULL;
+    
     int op;
+    int datos;
+    char res;
+    int x;
 
     do {
-        op = submenu("MODULO COLA");
+        op = submenu("PEDIDOS DE CLIENTES");
         switch (op) {
         case 0:
-            encolar();
+            cout << "\n\n~] INGRESAR UN PEDIDO DE PRODUCTOS [~" << endl; cin >> datos;
+            encolar(q, datos);
+            cout << "\n\n EL PEDIDO " << datos << " FUE INGRESADO CORRECTAMENTE";
             break;
+
         case 1:
-            mostrarcola();
+            do {
+                cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->correlativo << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res;
+                if (res == 'Y' || res == 'y') {
+                    x = desencolar(q);
+                    cout << "\n\nEL PEDIDO " << x << " FUE DESPACHADO";
+                    break;
+                }
+                else if (res == 'N' || res == 'n') {
+                    break;
+                }
+            } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
             break;
         case 2:
-            modificarcola();
+            if (q.primero != NULL) mostrarcola(q);
+            else cout << "\n\nNO EXISTEN PEDIDOS A DESPACHAR VUELVE MAS TARDE >:D";
             break;
+
         case 3:
             buscarcola();
             break;
-        case 4:
-            desencolar();
-        }
 
+        case 4:
+            modificarcola();
+            break;
+
+        }
+        cout << endl;
+        system("pause");
+        system("cls");
 
     } while (op != 5);
-
 }
 
 //----FUNCIONES----
@@ -283,22 +321,45 @@ void pop() {
 
 }
 
-void encolar() {
+void encolar(cola& q, int valor) {
+    nodoCola* aux = new nodoCola;
+    aux->correlativo = valor;
+    aux->siguienteCola = NULL;
 
-
-
+    if (q.primero == NULL) {
+        q.primero = aux;
+    }
+    else {
+        q.ultimo->siguienteCola = aux;
+    }
+    q.ultimo = aux;
 }
 
-void desencolar() {
+int desencolar(cola& q) {
+    int corre;
+    nodoCola* aux;
 
+    aux = q.primero;
+    corre = aux->correlativo;
+    q.primero = q.primero->siguienteCola;
+    delete aux;
 
+    return corre;
+}
 
+void mostrarcola(cola q) {
+    nodoCola* aux;
+
+    aux = q.primero;
+
+    while (aux != NULL) {
+        cout << "   " << aux->correlativo;
+        aux = aux->siguienteCola;
+    }
 }
 
 void mostrarpila() {
-
-
-
+    
 }
 
 void modificarpila() {
@@ -307,11 +368,6 @@ void modificarpila() {
 }
 
 void buscarpila() {
-
-
-}
-
-void mostrarcola() {
 
 
 }
