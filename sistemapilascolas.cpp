@@ -1,5 +1,7 @@
 #include <iostream>
 #include<conio.h>
+#include<cstdlib>
+#include<string>
 #include <windows.h>
 
 using namespace std;
@@ -9,8 +11,16 @@ struct nodoPila {
     nodoPila* siguientePila;
 };
 
-struct nodoCola {
+struct pedidos {
     int correlativo;
+    string producto;
+    int cantidad;
+    string cliente;
+    string direccion;
+};
+
+struct nodoCola {
+    pedidos pedido;
     nodoCola* siguienteCola;
 };
 
@@ -25,7 +35,7 @@ void modulopila();
 void modulocola();
 void push();
 void pop();
-void encolar(cola& q, int valor);
+int encolar(cola& q);
 int desencolar(cola& q);
 void portada();
 void color(int c);
@@ -33,11 +43,12 @@ void cargando();
 void mostrarpila();
 void modificarpila();
 void buscarpila();
-void buscarcola();
+void buscarcola(cola q, int corre);
 void modificarcola();
 void mostrarcola(cola q);
 void pantallacarga(string modulo);
 
+int correlativoPedidos = 1;
 
 int main()
 {
@@ -193,20 +204,20 @@ int submenu(string titulo) {
 
         if (opcion == 3) {
             color(10);
-            cout << "   >>   [ MODIFICAR ]\n";
-        }
-        else {
-            color(8);
-            cout << "        Modificar\n";
-        }
-
-        if (opcion == 4) {
-            color(10);
             cout << "   >>   [ BUSCAR ]\n";
         }
         else {
             color(8);
             cout << "        Buscar\n";
+        }
+
+        if (opcion == 4) {
+            color(10);
+            cout << "   >>   [ MODIFICAR ]\n";
+        }
+        else {
+            color(8);
+            cout << "        Modificar\n";
         }
 
         if (opcion == 5) {
@@ -260,39 +271,46 @@ void modulocola() {
     q.ultimo = NULL;
     
     int op;
-    int datos;
     char res;
+    int correEncolar, correBuscar;
     int x;
 
     do {
         op = submenu("PEDIDOS DE CLIENTES");
         switch (op) {
         case 0:
-            cout << "\n\n~] INGRESAR UN PEDIDO DE PRODUCTOS [~" << endl; cin >> datos;
-            encolar(q, datos);
-            cout << "\n\n EL PEDIDO " << datos << " FUE INGRESADO CORRECTAMENTE";
+            cout << "\n\n~] INGRESAR UN PEDIDO DE PRODUCTOS [~" << endl;
+            correEncolar = encolar(q);
+            cout << "\n\n EL PEDIDO " << correEncolar << " FUE INGRESADO CORRECTAMENTE";
             break;
 
         case 1:
-            do {
-                cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->correlativo << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res;
-                if (res == 'Y' || res == 'y') {
-                    x = desencolar(q);
-                    cout << "\n\nEL PEDIDO " << x << " FUE DESPACHADO";
-                    break;
-                }
-                else if (res == 'N' || res == 'n') {
-                    break;
-                }
-            } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
+            if (q.primero != NULL) {
+                do {
+                    cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->pedido.correlativo << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res;
+                    if (res == 'Y' || res == 'y') {
+                        x = desencolar(q);
+                        cout << "\n\nEL PEDIDO " << x << " FUE DESPACHADO";
+                        break;
+                    }
+                    else if (res == 'N' || res == 'n') {
+                        break;
+                    }
+                } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
+            }
+            else cout << "\n\nNO EXISTEN PEDIDOS A DESPACHAR VUELVE MAS TARDE :D";
             break;
         case 2:
             if (q.primero != NULL) mostrarcola(q);
-            else cout << "\n\nNO EXISTEN PEDIDOS A DESPACHAR VUELVE MAS TARDE >:D";
+            else cout << "\n\nNO EXISTEN PEDIDOS PARA MOSTRAR VUELVE MAS TARDE :D";
             break;
 
         case 3:
-            buscarcola();
+            if (q.primero != NULL) {
+                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA BUSCAR: "; cin >> correBuscar;
+                buscarcola(q, correBuscar);
+            }
+            else cout << "\n\nNO EXISTEN PEDIDOS A BUSCAR VUELVE MAS TARDE :D";
             break;
 
         case 4:
@@ -321,9 +339,20 @@ void pop() {
 
 }
 
-void encolar(cola& q, int valor) {
+int encolar(cola& q) {
     nodoCola* aux = new nodoCola;
-    aux->correlativo = valor;
+    
+    aux->pedido.correlativo = correlativoPedidos++;
+    cout << "Ingrese el producto del cliente: "; 
+    getline(cin, aux->pedido.producto);
+    cout << "Ingrese la cantidad de productos: "; 
+    cin >> aux->pedido.cantidad;
+    cin.ignore();
+    cout << "Ingrese el nombre del cliente: "; 
+    getline(cin, aux->pedido.cliente);
+    cout << "Ingrese la direccion del cliente: "; 
+    getline(cin, aux->pedido.direccion);
+    
     aux->siguienteCola = NULL;
 
     if (q.primero == NULL) {
@@ -333,6 +362,8 @@ void encolar(cola& q, int valor) {
         q.ultimo->siguienteCola = aux;
     }
     q.ultimo = aux;
+
+    return aux->pedido.correlativo;
 }
 
 int desencolar(cola& q) {
@@ -340,7 +371,7 @@ int desencolar(cola& q) {
     nodoCola* aux;
 
     aux = q.primero;
-    corre = aux->correlativo;
+    corre = aux->pedido.correlativo;
     q.primero = q.primero->siguienteCola;
     delete aux;
 
@@ -353,9 +384,29 @@ void mostrarcola(cola q) {
     aux = q.primero;
 
     while (aux != NULL) {
-        cout << "   " << aux->correlativo;
+        cout << "   [" << aux->pedido.correlativo << " - " << aux->pedido.cliente << "]";
         aux = aux->siguienteCola;
     }
+}
+
+void buscarcola(cola q, int corre) {
+    nodoCola* aux;
+    aux = q.primero;
+    bool encontrado = false;
+
+    while (aux != NULL) {
+        if (aux->pedido.correlativo == corre) {
+            cout << "PEDIDO NO. [" << aux->pedido.correlativo << "]" << endl;
+            cout << "\nProducto: " << aux->pedido.producto << endl;
+            cout << "Cantidad: " << aux->pedido.cantidad << endl;
+            cout << "Cliente: " << aux->pedido.cliente << endl;
+            cout << "Direccion: " << aux->pedido.direccion << endl;
+
+            encontrado = true;
+        }
+        aux = aux->siguienteCola;
+    }
+    if (!encontrado) cout << "\nNo se encontro el pedido :(";
 }
 
 void mostrarpila() {
@@ -373,10 +424,6 @@ void buscarpila() {
 }
 
 void modificarcola() {
-
-
-}
-void buscarcola() {
 
 
 }
@@ -416,7 +463,7 @@ void portada() {
     cout << "       Carnet: 2290-23-3596\n";
     cout << "  > Jose Andres Santizo Procopio\n";
     cout << "       Carnet: 2290-24-12667\n";
-    cout << "  > Miguel Angel Santos García Velásquez\n";
+    cout << "  > Miguel Angel Santos Garcia Velasquez\n";
     cout << "       Carnet: 2290-24-8950\n\n";
 
     color(10);
