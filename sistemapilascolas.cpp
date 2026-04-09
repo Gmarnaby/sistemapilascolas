@@ -2,6 +2,8 @@
 #include<conio.h>
 #include<cstdlib>
 #include<string>
+#include<fstream>
+#include<sstream>
 #include <windows.h>
 
 using namespace std;
@@ -12,9 +14,9 @@ struct nodoPila {
 };
 
 struct pedidos {
-    int correlativo;
+    int correlativo = 0;
     string producto;
-    int cantidad;
+    int cantidad = 0;
     string cliente;
     string direccion;
 };
@@ -32,7 +34,7 @@ struct cola {
 int menuprincipal();
 int submenu(string titulo);
 void modulopila();
-void modulocola();
+void modulocola(cola& q);
 void push();
 void pop();
 int encolar(cola& q);
@@ -40,18 +42,24 @@ int desencolar(cola& q);
 void portada();
 void color(int c);
 void cargando();
+void guardarPedidos(const pedidos& q);
+void actualizarPedidos(const cola& q);
+void cargarPedidos(cola& q);
 void mostrarpila();
 void modificarpila();
 void buscarpila();
 void buscarcola(cola q, int corre);
 void modificarcola(cola q, int corre);
 void mostrarcola(cola q);
-void pantallacarga(string modulo);
+void pantallacargaPedidos(cola& q);
 
 int correlativoPedidos = 1;
 
 int main()
 {
+    cola q;
+    q.primero = NULL;
+    q.ultimo = NULL;
     int op;
     portada();
     cargando();
@@ -60,13 +68,13 @@ int main()
         op = menuprincipal();
         switch (op) {
         case 0:
-            pantallacarga("MODULO PILA");
+            //pantallacarga("MODULO PILA");
             modulopila();
             break;
 
         case 1:
-            pantallacarga("MODULO COLA");
-            modulocola();
+            pantallacargaPedidos(q);
+            modulocola(q);
             break;
 
         case 2:
@@ -265,11 +273,7 @@ void modulopila() {
 }
 
 //----colas----
-void modulocola() {
-    cola q;
-    q.primero = NULL;
-    q.ultimo = NULL;
-    
+void modulocola(cola& q) {    
     int op;
     char res;
     int correEncolar, correBuscar, correModificar;
@@ -375,6 +379,8 @@ int encolar(cola& q) {
     }
     q.ultimo = aux;
 
+    guardarPedidos(aux->pedido);
+
     return aux->pedido.correlativo;
 }
 
@@ -386,6 +392,8 @@ int desencolar(cola& q) {
     corre = aux->pedido.correlativo;
     q.primero = q.primero->siguienteCola;
     delete aux;
+
+    actualizarPedidos(q);
 
     return corre;
 }
@@ -444,6 +452,81 @@ void modificarcola(cola q, int corre) {
         aux = aux->siguienteCola;
     }
     if (!encontrado) cout << "No se encontro el pedido :(";
+}
+
+void guardarPedidos(const pedidos& q) {
+    ofstream archivo("pedidos.txt", ios::app);
+
+    if (archivo.is_open()) {
+        archivo << q.correlativo << "|" << q.producto << "|"
+            << q.cantidad << "|" << q.cliente << "|" << q.direccion << endl;
+
+        archivo.close();
+    }
+}
+
+void actualizarPedidos(const cola& q) {
+    ofstream archivo("pedidos.txt", ios::out);
+    
+    nodoCola* aux = q.primero;
+
+    if (archivo.is_open()) {
+        while (aux != NULL) {
+            archivo << aux->pedido.correlativo << "|" << aux->pedido.producto << "|"
+                << aux->pedido.cantidad << "|" << aux->pedido.cliente << "|"
+                << aux->pedido.direccion << endl;
+            aux = aux->siguienteCola;
+        }
+        archivo.close();
+    }
+}
+
+void cargarPedidos(cola& q) {
+    ifstream archivo("pedidos.txt");
+    string linea;
+
+    if (archivo.fail()) {
+        cout << "Fallo al cargar los pedidos contacte con servicio tecnico" << endl;
+        exit(1);
+    }
+
+    int maxCorrelativo = 0;
+
+    while (getline(archivo, linea)) {
+        stringstream ss(linea);
+        string dato;
+
+        nodoCola* nuevo = new nodoCola;
+
+        getline(ss, dato, '|');
+        nuevo->pedido.correlativo = stoi(dato);
+
+        if (nuevo->pedido.correlativo > maxCorrelativo) {
+            maxCorrelativo = nuevo->pedido.correlativo;
+        }
+
+        getline(ss, nuevo->pedido.producto, '|');
+
+        getline(ss, dato, '|');
+        nuevo->pedido.cantidad = stoi(dato);
+
+        getline(ss, nuevo->pedido.cliente, '|');
+        getline(ss, nuevo->pedido.direccion, '|');
+
+        nuevo->siguienteCola = NULL;
+
+        if (q.primero == NULL) {
+            q.primero = nuevo;
+        }
+        else {
+            q.ultimo->siguienteCola = nuevo;
+        }
+        q.ultimo = nuevo;
+    }
+
+    archivo.close();
+
+    correlativoPedidos = maxCorrelativo + 1;
 }
 
 //----ESTETICA----
@@ -535,12 +618,12 @@ void cargando() {
     (void)_getch();
 }
 
-void pantallacarga(string modulo) {
+void pantallacargaPedidos(cola& q) {
     system("cls");
 
     color(14);
     cout << "========================================\n";
-    cout << "      ACCEDIENDO A " << modulo << "\n";
+    cout << "      ACCEDIENDO A LOS PEDIDOS" << "\n";
     cout << "========================================\n\n";
 
     color(11);
@@ -555,10 +638,17 @@ void pantallacarga(string modulo) {
 
     color(10);
     cout << "[";
+
     for (int i = 0; i < 20; i++) {
+                
+        if (i == 5) {
+            cargarPedidos(q);
+        }
+
         cout << char(219);
         Sleep(70);
     }
+
     cout << "]";
 
     Sleep(400);
