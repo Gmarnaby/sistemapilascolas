@@ -44,7 +44,7 @@ void mostrarpila();
 void modificarpila();
 void buscarpila();
 void buscarcola(cola q, int corre);
-void modificarcola();
+void modificarcola(cola q, int corre);
 void mostrarcola(cola q);
 void pantallacarga(string modulo);
 
@@ -272,7 +272,7 @@ void modulocola() {
     
     int op;
     char res;
-    int correEncolar, correBuscar;
+    int correEncolar, correBuscar, correModificar;
     int x;
 
     do {
@@ -314,7 +314,11 @@ void modulocola() {
             break;
 
         case 4:
-            modificarcola();
+            if (q.primero != NULL) {
+                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA MODIFICAR: "; cin >> correModificar; cin.ignore();
+                modificarcola(q, correModificar);
+            }
+            else cout << "\n\nNO EXISTEN PEDIDOS PARA MODIFICAR REALIZA TU CHAMBA PORFA";
             break;
 
         }
@@ -329,13 +333,21 @@ void modulocola() {
 
 void push() {
 
-
-
 }
 
 void pop() {
 
+}
 
+void mostrarpila() {
+
+}
+
+void modificarpila() {
+
+}
+
+void buscarpila() {
 
 }
 
@@ -409,23 +421,29 @@ void buscarcola(cola q, int corre) {
     if (!encontrado) cout << "\nNo se encontro el pedido :(";
 }
 
-void mostrarpila() {
-    
-}
+void modificarcola(cola q, int corre) {
+    nodoCola* aux;
+    aux = q.primero;
+    bool encontrado = false;
+    string producto;
 
-void modificarpila() {
-
-
-}
-
-void buscarpila() {
-
-
-}
-
-void modificarcola() {
-
-
+    while (aux != NULL) {
+        if (aux->pedido.correlativo == corre) {
+            cout << "\nPEDIDO NO. [" << aux->pedido.correlativo << "]" << endl;
+            cout << "\nIngrese el nuevo producto: "; getline(cin, producto);
+            aux->pedido.producto = producto;
+            cout << "Ingrese la nueva cantidad de producto: ";
+            cin >> aux->pedido.cantidad;
+            cin.ignore();
+            cout << "Ingrese el nuevo del cliente: ";
+            getline(cin, aux->pedido.cliente);
+            cout << "Ingrese la nueva direccion: ";
+            getline(cin, aux->pedido.direccion);
+            encontrado = true;
+        }
+        aux = aux->siguienteCola;
+    }
+    if (!encontrado) cout << "No se encontro el pedido :(";
 }
 
 //----ESTETICA----
