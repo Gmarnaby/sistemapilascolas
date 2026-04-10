@@ -464,7 +464,7 @@ void buscarpila(nodoPila*& p, int correBuscarIng) {
         }
         aux = aux->siguientePila;
     }
-    if (!encontradoBuscarIng) cout << "\NO SE ENCONTRO EL REGISTRO INTENTE MAS TARDE >:C" << endl;
+    if (!encontradoBuscarIng) cout << "\nNO SE ENCONTRO EL REGISTRO INTENTE MAS TARDE >:C" << endl;
 }
 
 void guardarIngreso(nodoPila*& p) {
@@ -485,8 +485,8 @@ void actualizarIngreso(nodoPila*& p) {
 
     if (archivo.is_open()) {
         while (aux != NULL) {
-            archivo << p->ingreso.correlativoIng << "|" << p->ingreso.proveedorIng << "|"
-                << p->ingreso.fechaIng << "|" << p->ingreso.productoIng << "|" << p->ingreso.cantidadIng << endl;
+            archivo << aux->ingreso.correlativoIng << "|" << aux->ingreso.proveedorIng << "|"
+                << aux->ingreso.fechaIng << "|" << aux->ingreso.productoIng << "|" << aux->ingreso.cantidadIng << endl;
             
             aux = aux->siguientePila;
         }
