@@ -1,2 +1,2 @@
-2|Protector Bucal|1|Felix|Calle Pericon
-3|Leon|1|Leon|Calle Tortlan
+3|Protector Bucal|1|Leon|Calle Pandora
+4|Guantes de Box|4|Pedro|Calle Silk

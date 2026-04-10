@@ -8,8 +8,16 @@
 
 using namespace std;
 
+struct ingresos {
+    int correlativoIng = 0;
+    string proveedorIng;
+    string fechaIng;
+    string productoIng;
+    int cantidadIng;
+};
+
 struct nodoPila {
-    int dato;
+    ingresos ingreso;
     nodoPila* siguientePila;
 };
 
@@ -33,10 +41,10 @@ struct cola {
 
 int menuprincipal();
 int submenu(string titulo);
-void modulopila();
+void modulopila(nodoPila*& p);
 void modulocola(cola& q);
-void push();
-void pop();
+int push(nodoPila*& p);
+int pop(nodoPila*& p);
 int encolar(cola& q);
 int desencolar(cola& q);
 void portada();
@@ -45,21 +53,29 @@ void cargando();
 void guardarPedidos(const pedidos& q);
 void actualizarPedidos(const cola& q);
 void cargarPedidos(cola& q);
-void mostrarpila();
-void modificarpila();
-void buscarpila();
+void guardarIngreso(nodoPila*& p);
+void actualizarIngreso(nodoPila*& p);
+void cargarIngreso(nodoPila*& p);
+void mostrarpila(nodoPila*& p);
+void modificarpila(nodoPila*& p, int correModificarIng);
+void buscarpila(nodoPila*& p, int correBuscarIng);
 void buscarcola(cola q, int corre);
 void modificarcola(cola q, int corre);
 void mostrarcola(cola q);
 void pantallacargaPedidos(cola& q);
+void pantallacargaIngresos(nodoPila*& p);
 
 int correlativoPedidos = 1;
+int correlativoIngGlobal = 1;
 
 int main()
 {
     cola q;
     q.primero = NULL;
     q.ultimo = NULL;
+
+    nodoPila* p = NULL;
+
     int op;
     portada();
     cargando();
@@ -68,8 +84,8 @@ int main()
         op = menuprincipal();
         switch (op) {
         case 0:
-            //pantallacarga("MODULO PILA");
-            modulopila();
+            pantallacargaIngresos(p);
+            modulopila(p);
             break;
 
         case 1:
@@ -254,26 +270,60 @@ int submenu(string titulo) {
 //-----------MODULOS-----------------
 
 //----PILAS----
-void modulopila() {
+void modulopila(nodoPila*& p) {
     int op;
+    int correPush, busqueda, modificacion;
+    int x;
+    char res;
 
     do {
-        op = submenu("MODULO PILA");
+        op = submenu("INGRESOS PENDIENTES DE VALIDACION");
 
         switch (op) {
-        case 0: push(); break;
-        case 1: mostrarpila(); break;
-        case 2: modificarpila(); break;
-        case 3: buscarpila(); break;
-        case 4: pop(); break;
+        case 0: 
+            cout << "\n\n~] REGISTRAR INGRESO DE PRODUCTO [~" << endl;
+            correPush = push(p); 
+            cout << "\n\nEL INGRESO NO. " << correPush << " FUE REGISTRADO CON EXITO :D";
+            break;
+        case 1: 
+            if (p != NULL) {
+                do {
+                    cout << "\n\nVALIDARAS EL INGRESO " << p->ingreso.correlativoIng << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res; cin.ignore();
+                    if (res == 'Y' || res == 'y') {
+                        x = pop(p);
+                        cout << "\n\nEL REGISTRO NO. " << x << " FUE VALIDADO";
+                        break;
+                    }
+                    else if (res == 'N' || res == 'n') {
+                        break;
+                    }
+                } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
+            }
+            else cout << "\n\nNO EXISTEN INGRESOS A VALIDAR VUELVE MAS TARDE :D";
+            break;
+        case 2: 
+            if (p != NULL) mostrarpila(p);
+            else cout << "NO EXISTEN INGRESOS PARA MOSTRAR REGRESA MAS TARDE :(" << endl;
+            break;
+        case 3: 
+            cout << "\n\nINGRESE EL NO. DE INGRESO PARA BUSCAR: "; cin >> busqueda; cin.ignore();
+            buscarpila(p, busqueda); 
+            break;
+        case 4: 
+            cout << "\n\nINGRESE EL NO. DE INGRESO PARA MODIFICAR: "; cin >> modificacion; cin.ignore();
+            modificarpila(p, modificacion);
+            break;
         }
+        cout << endl;
+        system("pause");
+        system("cls");
 
     } while (op != 5);
 
 }
 
 //----colas----
-void modulocola(cola& q) {    
+void modulocola(cola& q) {
     int op;
     char res;
     int correEncolar, correBuscar, correModificar;
@@ -291,7 +341,7 @@ void modulocola(cola& q) {
         case 1:
             if (q.primero != NULL) {
                 do {
-                    cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->pedido.correlativo << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res;
+                    cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->pedido.correlativo << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res; cin.ignore();
                     if (res == 'Y' || res == 'y') {
                         x = desencolar(q);
                         cout << "\n\nEL PEDIDO " << x << " FUE DESPACHADO";
@@ -311,7 +361,7 @@ void modulocola(cola& q) {
 
         case 3:
             if (q.primero != NULL) {
-                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA BUSCAR: "; cin >> correBuscar;
+                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA BUSCAR: "; cin >> correBuscar; cin.ignore();
                 buscarcola(q, correBuscar);
             }
             else cout << "\n\nNO EXISTEN PEDIDOS A BUSCAR VUELVE MAS TARDE :D";
@@ -335,24 +385,155 @@ void modulocola(cola& q) {
 
 //----FUNCIONES----
 
-void push() {
+int push(nodoPila*& p) {
+    nodoPila* aux = new nodoPila();
+    
+    aux->ingreso.correlativoIng = correlativoIngGlobal++;
+    cout << "Ingrese el proveedor del producto: "; getline(cin, aux->ingreso.proveedorIng);
+    cout << "Ingrese la fecha de ingreso (dd/mm/yy): "; getline(cin, aux->ingreso.fechaIng);
+    cout << "Ingrese el nombre del producto: "; getline(cin, aux->ingreso.productoIng);
+    cout << "Ingrese la cantidad de producto: "; cin >> aux->ingreso.cantidadIng; cin.ignore();
 
+    aux->siguientePila = p;
+    p = aux;
+
+    guardarIngreso(p);
+
+    return aux->ingreso.correlativoIng;
 }
 
-void pop() {
+int pop(nodoPila*& p) {
+    nodoPila* aux = p;
+    int corre;
 
+    corre = aux->ingreso.correlativoIng;
+    p = aux->siguientePila;
+    delete aux;
+
+    actualizarIngreso(p);
+
+    return corre;
 }
 
-void mostrarpila() {
+void mostrarpila(nodoPila*& p) {
+    nodoPila* aux = p;
 
+    while (aux != NULL) {
+        cout << "\n\n┌--------------------------------┐" << endl;
+        cout << "  Ingreso no: " << aux->ingreso.correlativoIng << endl;
+        cout << "  Proveedor del producto: " << aux->ingreso.proveedorIng << endl;
+        cout << "  Nombre del producto: " << aux->ingreso.productoIng << endl;
+        cout << "└--------------------------------┘" << endl;
+
+        aux = aux->siguientePila;
+    }
 }
 
-void modificarpila() {
+void modificarpila(nodoPila*& p, int correModificarIng) {
+    nodoPila* aux = p;
+    bool encontradoModificarIng = false;
 
+    while (aux != NULL) {
+        if (aux->ingreso.correlativoIng == correModificarIng) {
+            cout << "\nIngreso No. [" << aux->ingreso.correlativoIng << "]" << endl;
+            cout << "\nIngrese el Proveedor: "; getline(cin, aux->ingreso.proveedorIng);
+            cout << "Ingrese la fecha (dd/mm/yy): "; getline(cin, aux->ingreso.fechaIng);
+            cout << "Ingrese el nombre del producto: "; getline(cin, aux->ingreso.productoIng);
+            cout << "Ingrese la cantidad de producto: "; cin >> aux->ingreso.cantidadIng; cin.ignore();
+
+            encontradoModificarIng = true;
+        }
+        aux = aux->siguientePila;
+    }
+    if (!encontradoModificarIng) cout << "\nNO SE ENCONTRO EL INGRESO >:C" << endl;
 }
 
-void buscarpila() {
+void buscarpila(nodoPila*& p, int correBuscarIng) {
+    nodoPila* aux = p;
+    bool encontradoBuscarIng = false;
 
+    while (aux != NULL) {
+        if (aux->ingreso.correlativoIng == correBuscarIng) {
+            cout << "\n\nIngreso No. [" << aux->ingreso.correlativoIng << "]" << endl;
+            cout << "\nProveedor: " << aux->ingreso.proveedorIng << endl;
+            cout << "Fecha: " << aux->ingreso.fechaIng << endl;
+            cout << "Nombre del Producto: " << aux->ingreso.productoIng << endl;
+            cout << "Cantidad de Producto: " << aux->ingreso.cantidadIng << endl;
+
+            encontradoBuscarIng = true;
+        }
+        aux = aux->siguientePila;
+    }
+    if (!encontradoBuscarIng) cout << "\NO SE ENCONTRO EL REGISTRO INTENTE MAS TARDE >:C" << endl;
+}
+
+void guardarIngreso(nodoPila*& p) {
+    ofstream archivo("ingresos.txt", ios::app);
+
+    if (archivo.is_open()) {
+        archivo << p->ingreso.correlativoIng << "|" << p->ingreso.proveedorIng << "|"
+            << p->ingreso.fechaIng << "|" << p->ingreso.productoIng << "|" << p->ingreso.cantidadIng << endl;
+
+        archivo.close();
+    }
+}
+
+void actualizarIngreso(nodoPila*& p) {
+    ofstream archivo("ingresos.txt", ios::out);
+
+    nodoPila* aux = p;
+
+    if (archivo.is_open()) {
+        while (aux != NULL) {
+            archivo << p->ingreso.correlativoIng << "|" << p->ingreso.proveedorIng << "|"
+                << p->ingreso.fechaIng << "|" << p->ingreso.productoIng << "|" << p->ingreso.cantidadIng << endl;
+            
+            aux = aux->siguientePila;
+        }
+        archivo.close();
+    }
+}
+
+void cargarIngreso(nodoPila*& p) {
+    ifstream archivo("ingresos.txt");
+    string linea;
+
+    if (archivo.fail()) {
+        cout << "Fallo al cargar los pedidos contacte con servicio tecnico" << endl;
+        exit(1);
+    }
+
+    int maxCorrelativoIng = 0;
+
+    while (getline(archivo, linea)) {
+        stringstream ss(linea);
+        string dato;
+
+        nodoPila* nuevo = new nodoPila;
+
+        getline(ss, dato, '|');
+        nuevo->ingreso.correlativoIng = stoi(dato);
+
+        if (nuevo->ingreso.correlativoIng > maxCorrelativoIng) {
+            maxCorrelativoIng = nuevo->ingreso.correlativoIng;
+        }
+
+        getline(ss, nuevo->ingreso.proveedorIng, '|');
+
+        getline(ss, nuevo->ingreso.fechaIng, '|');
+
+        getline(ss, nuevo->ingreso.productoIng, '|');
+
+        getline(ss, dato, '|');
+        nuevo->ingreso.cantidadIng = stoi(dato);
+
+        nuevo->siguientePila = p;
+        p = nuevo;
+    }
+
+    archivo.close();
+
+    correlativoIngGlobal = maxCorrelativoIng + 1;
 }
 
 int encolar(cola& q) {
@@ -452,6 +633,7 @@ void modificarcola(cola q, int corre) {
         aux = aux->siguienteCola;
     }
     if (!encontrado) cout << "No se encontro el pedido :(";
+    actualizarPedidos(q);
 }
 
 void guardarPedidos(const pedidos& q) {
@@ -649,6 +831,40 @@ void pantallacargaPedidos(cola& q) {
         Sleep(70);
     }
 
+    cout << "]";
+
+    Sleep(400);
+    color(7);
+}
+
+void pantallacargaIngresos(nodoPila*& p) {
+    system("cls");
+
+    color(14);
+    cout << "========================================\n";
+    cout << "   ACCEDIENDO A INGRESOS DE PRODUCTOS " << "\n";
+    cout << "========================================\n\n";
+
+    color(11);
+    cout << "Cargando";
+
+    for (int i = 0; i < 3; i++) {
+        cout << ".";
+        Sleep(300);
+    }
+
+    cout << "\n\n";
+
+    color(10);
+    cout << "[";
+    for (int i = 0; i < 20; i++) {
+        if (i == 5) {
+            cargarIngreso(p);
+        }
+        
+        cout << char(219);
+        Sleep(70);
+    }
     cout << "]";
 
     Sleep(400);
