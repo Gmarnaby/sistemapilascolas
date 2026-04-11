@@ -6,6 +6,7 @@
 #include<sstream>
 #include <windows.h>
 
+
 using namespace std;
 
 struct ingresos {
@@ -47,6 +48,7 @@ int push(nodoPila*& p);
 int pop(nodoPila*& p);
 int encolar(cola& q);
 int desencolar(cola& q);
+void dibujo();
 void portada();
 void color(int c);
 void cargando();
@@ -77,6 +79,7 @@ int main()
     nodoPila* p = NULL;
 
     int op;
+    dibujo();
     portada();
     cargando();
 
@@ -869,4 +872,34 @@ void pantallacargaIngresos(nodoPila*& p) {
 
     Sleep(400);
     color(7);
+}
+
+void dibujo() {
+    system("cls");
+
+    color(10);
+    cout << "                                                  _  _" << endl;
+    cout << "                                                 (\\\\( \\." << endl;
+    cout << "                                                  `.\-.)" << endl;
+    cout << "                              _...._            _,-'   `-." << endl;
+    cout << "\\                          ,'      `-._.---.,-'       .   \\." << endl;
+    cout << " \\`.                      ,'                               `." << endl;
+    cout << "  \\ `-...__              /                           .   .:  y" << endl;
+    cout << "   `._     ``--..__     /                           ,'`---._/" << endl;
+    cout << "      `-._         ``--'                      |    /_" << endl;
+    cout << "          `.._                   _            ;   <_ \\" << endl;
+    cout << "              `--.___             `.           `-._ \\ \\" << endl;
+    cout << "                     `--<           `.     (\\ _/)/ `.\\/" << endl;
+    cout << "                         \\            \\     `<a \\  /_/" << endl;
+    cout << "                          `.           ;      `._y" << endl;
+    cout << "                            `--.      /    _../" << endl;
+    cout << "                                \\    /__..'" << endl;
+    cout << "                                 ;  //" << endl;
+    cout << "                                <   \\\\" << endl;
+    cout << "                                 `.  \\\\" << endl;
+    cout << "                                   `. \\\\_ __" << endl;
+    cout << "                                     `.`-'  \\\\" << endl;
+    cout << "                                       `----''" << endl;
+
+    system("pause");
 }
