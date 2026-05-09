@@ -1,0 +1,2 @@
+1|NIKE|10/04/26|Guantes de Box|200
+3|ADIDAS|10/04/26|Protector Bucal|100

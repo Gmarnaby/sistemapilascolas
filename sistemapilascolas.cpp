@@ -14,7 +14,7 @@ struct ingresos {
     string proveedorIng;
     string fechaIng;
     string productoIng;
-    int cantidadIng;
+    int cantidadIng = 0;
 };
 
 struct nodoPila {
