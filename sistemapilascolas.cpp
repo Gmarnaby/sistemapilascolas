@@ -40,6 +40,20 @@ struct cola {
     nodoCola* ultimo;
 };
 
+struct descuento {
+    int correlativo;
+    string cliente;
+    string producto;
+    int cantidad;
+};
+
+struct nodoArbol {
+    pedidos pedido;
+    nodoArbol* izquierda;
+    nodoArbol* derecha;
+};
+
+//Funciones Prototipo
 int menuprincipal();
 int submenu(string titulo);
 void modulopila(nodoPila*& p);
@@ -67,6 +81,13 @@ void mostrarcola(cola q);
 void pantallacargaPedidos(cola& q);
 void pantallacargaIngresos(nodoPila*& p);
 
+void moduloarbol(nodoArbol*& arbol);
+void insertarArbol(nodoArbol*& arbol);
+void insertarNodo(nodoArbol*& arbol, pedidos p);
+void mostrarArbol(nodoArbol* arbol);
+void buscarMayor(nodoArbol* arbol);
+
+
 int correlativoPedidos = 1;
 int correlativoIngGlobal = 1;
 
@@ -77,6 +98,8 @@ int main()
     q.ultimo = NULL;
 
     nodoPila* p = NULL;
+
+    nodoArbol* arbol = NULL;
 
     int op;
     dibujo();
@@ -97,6 +120,10 @@ int main()
             break;
 
         case 2:
+            moduloarbol(arbol);
+            break;
+
+        case 3:
             system("cls");
 
             color(12);
@@ -163,6 +190,15 @@ int menuprincipal() {
         }
 
         if (opcion == 2) {
+            color(10);
+            cout << "   >> [ MODULO ARBOL ]\n";
+        }
+        else {
+            color(7);
+            cout << "      Modulo ARBOL\n";
+        }
+
+        if (opcion == 3) {
             color(12);
             cout << "   >> [ SALIR ]\n";
         }
@@ -179,8 +215,8 @@ int menuprincipal() {
         if (tecla == 72) opcion--;
         if (tecla == 80) opcion++;
 
-        if (opcion < 0) opcion = 2;
-        if (opcion > 2) opcion = 0;
+        if (opcion < 0) opcion = 3;
+        if (opcion > 3) opcion = 0;
 
     } while (tecla != 13);
 
@@ -384,6 +420,47 @@ void modulocola(cola& q) {
         system("cls");
 
     } while (op != 5);
+}
+
+
+// ----- Arboles -----
+void moduloarbol(nodoArbol*& arbol) {
+
+    int op;
+
+    do {
+
+        system("cls");
+
+        cout << "========== MODULO ARBOL ==========\n";
+        cout << "1. Insertar pedido\n";
+        cout << "2. Mostrar ordenados\n";
+        cout << "3. Buscar pedidos mayoreo\n";
+        cout << "4. Regresar\n";
+        cout << "Seleccione: ";
+
+        cin >> op;
+        cin.ignore();
+
+        switch (op) {
+
+        case 1:
+            insertarArbol(arbol);
+            break;
+
+        case 2:
+            mostrarArbol(arbol);
+            break;
+
+        case 3:
+            buscarMayor(arbol);
+            break;
+        }
+
+        system("pause");
+        system("cls");
+
+    } while (op != 4);
 }
 
 //----FUNCIONES----
@@ -712,6 +789,102 @@ void cargarPedidos(cola& q) {
     archivo.close();
 
     correlativoPedidos = maxCorrelativo + 1;
+}
+
+
+void insertarArbol(nodoArbol*& arbol) {
+
+    pedidos p;
+
+    cout << "\nCorrelativo: ";
+    cin >> p.correlativo;
+    cin.ignore();
+
+    cout << "Producto: ";
+    getline(cin, p.producto);
+
+    cout << "Cantidad: ";
+    cin >> p.cantidad;
+    cin.ignore();
+
+    cout << "Cliente: ";
+    getline(cin, p.cliente);
+
+    cout << "Direccion: ";
+    getline(cin, p.direccion);
+
+    insertarNodo(arbol, p);
+}
+
+
+void insertarNodo(nodoArbol*& arbol, pedidos p) {
+
+    if (arbol == NULL) {
+
+        nodoArbol* nuevo = new nodoArbol();
+
+        nuevo->pedido = p;
+
+        nuevo->izquierda = NULL;
+        nuevo->derecha = NULL;
+
+        arbol = nuevo;
+    }
+    else {
+
+        if (p.cantidad < arbol->pedido.cantidad) {
+            insertarNodo(arbol->izquierda, p);
+        }
+        else {
+            insertarNodo(arbol->derecha, p);
+        }
+    }
+}
+
+void mostrarArbol(nodoArbol* arbol) {
+
+    if (arbol != NULL) {
+
+        mostrarArbol(arbol->izquierda);
+
+        cout << "\n========================";
+        cout << "\nPedido: " << arbol->pedido.correlativo;
+        cout << "\nCliente: " << arbol->pedido.cliente;
+        cout << "\nProducto: " << arbol->pedido.producto;
+        cout << "\nCantidad: " << arbol->pedido.cantidad;
+        cout << "\n========================";
+
+        mostrarArbol(arbol->derecha);
+    }
+}
+
+void buscarMayor(nodoArbol* arbol) {
+
+    if (arbol != NULL) {
+
+        buscarMayor(arbol->izquierda);
+
+        if (arbol->pedido.cantidad >= 50) {
+
+            cout << "\n================================";
+            cout << "\nPEDIDO CON DESCUENTO";
+            cout << "\n================================";
+
+            cout << "\nCliente: "
+                << arbol->pedido.cliente;
+
+            cout << "\nProducto: "
+                << arbol->pedido.producto;
+
+            cout << "\nCantidad: "
+                << arbol->pedido.cantidad;
+
+            cout << "\nDESCUENTO: 15%";
+            cout << "\n================================";
+        }
+
+        buscarMayor(arbol->derecha);
+    }
 }
 
 //----ESTETICA----

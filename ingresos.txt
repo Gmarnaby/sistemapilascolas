@@ -1,0 +1,3 @@
+2|ADIDAS|04/07/26|Cascos con agujeros de oreja|23
+3|NIKE|23/02/26|Cinta de seguridad|45
+4|KINE|03/04/26|Guantes para canguros|34
