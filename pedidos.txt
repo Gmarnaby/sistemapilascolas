@@ -1,2 +1,6 @@
+<<<<<<< HEAD
 4|Guantes de Box|4|Pedro|Calle Silk
 5|ADIDAS|10|Felix|Calle Lamar
+=======
+6|Pelota mediana |56|Miguel Gar¡a |Guatemala
+>>>>>>> 3f8da73c29f6d96389d0ae11dc660213ffb62045
