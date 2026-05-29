@@ -8,6 +8,8 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
+#include <cstdio>
+#include <iomanip>
 
 using namespace std;
 
@@ -57,6 +59,25 @@ struct nodoAVL {
     int      altura;
 };
 
+struct inventario {
+    int    id = 0;
+    string producto;
+    int    cantidad = 0;
+    int    cantMinima = 0;
+    double precio = 0.0;
+};
+
+struct nodoLista {
+    inventario item;
+    nodoLista* anterior;
+    nodoLista* siguiente;
+};
+
+struct listaDoble {
+    nodoLista* cabeza;
+    nodoLista* cola;
+    int        cantidad;
+};
 //   PROTOTIPOS
 
 // Estetica
@@ -90,6 +111,16 @@ void guardarPedidos(const pedidos& q);
 void actualizarPedidos(const cola& q);
 void cargarPedidos(cola& q);
 void pantallacargaPedidos(cola& q);
+
+// Lista Doble (Inventario)
+void       moduloLista(listaDoble& lista);
+void       insertarLista(listaDoble& lista);
+void       eliminarLista(listaDoble& lista, int id);
+void       vaciarLista(listaDoble& lista);
+void       mostrarLista(const listaDoble& lista);
+void       buscarLista(const listaDoble& lista, int id);
+void       modificarLista(listaDoble& lista, int id);
+nodoLista* buscarNodoLista(listaDoble& lista, int id);
 
 // Arbol ABB
 void       moduloarbol(nodoArbol*& arbol);
@@ -128,10 +159,9 @@ void     llenarNivelesAVL(nodoAVL* nodo, int nivel, int pos, int ancho,
 
 int correlativoPedidos = 1;
 int correlativoIngGlobal = 1;
+int correlativoInventario = 1;
 
-// ============================================================
 //   MAIN
-// ============================================================
 
 int main()
 {
@@ -140,6 +170,7 @@ int main()
     q.ultimo = NULL;
 
     nodoPila* p = NULL;
+    listaDoble lista = { NULL, NULL, 0 };
     nodoArbol* arbol = NULL;
     nodoAVL* avl = NULL;
 
@@ -160,12 +191,15 @@ int main()
             modulocola(q);
             break;
         case 2:
-            moduloarbol(arbol);
+            moduloLista(lista);
             break;
         case 3:
-            moduloAVL(avl);
+            moduloarbol(arbol);
             break;
         case 4:
+            moduloAVL(avl);
+            break;
+        case 5:
             system("cls");
             color(12);
             cout << "========================================\n";
@@ -181,14 +215,12 @@ int main()
             color(7);
             break;
         }
-    } while (op != 4);  // <-- CORREGIDO: era != 3
+    } while (op != 5);
 
     return 0;
 }
 
-// ============================================================
 //   MENU PRINCIPAL
-// ============================================================
 
 int menuprincipal() {
     int opcion = 0;
@@ -208,11 +240,13 @@ int menuprincipal() {
         else { color(7);  cout << "      Modulo PILA\n"; }
         if (opcion == 1) { color(10); cout << "   >> [ MODULO COLA ]\n"; }
         else { color(7);  cout << "      Modulo COLA\n"; }
-        if (opcion == 2) { color(10); cout << "   >> [ MODULO ARBOL ABB ]\n"; }
+        if (opcion == 2) { color(10); cout << "   >> [ MODULO LISTA DOBLE ]\n"; }
+        else { color(7);  cout << "      Modulo LISTA DOBLE\n"; }
+        if (opcion == 3) { color(10); cout << "   >> [ MODULO ARBOL ABB ]\n"; }
         else { color(7);  cout << "      Modulo ARBOL ABB\n"; }
-        if (opcion == 3) { color(10); cout << "   >> [ MODULO ARBOL AVL ]\n"; }
+        if (opcion == 4) { color(10); cout << "   >> [ MODULO ARBOL AVL ]\n"; }
         else { color(7);  cout << "      Modulo ARBOL AVL\n"; }
-        if (opcion == 4) { color(12); cout << "   >> [ SALIR ]\n"; }
+        if (opcion == 5) { color(12); cout << "   >> [ SALIR ]\n"; }
         else { color(7);  cout << "      Salir\n"; }
 
         color(8);
@@ -221,17 +255,15 @@ int menuprincipal() {
 
         if (tecla == 72) opcion--;
         if (tecla == 80) opcion++;
-        if (opcion < 0) opcion = 4;  // <-- CORREGIDO: era 3
-        if (opcion > 4) opcion = 0;  // <-- CORREGIDO: era 3
+        if (opcion < 0) opcion = 5;
+        if (opcion > 5) opcion = 0;
 
     } while (tecla != 13);
 
     return opcion;
 }
 
-// ============================================================
 //   SUB MENU
-// ============================================================
 
 int submenu(string titulo) {
     int opcion = 0;
@@ -269,9 +301,7 @@ int submenu(string titulo) {
     return opcion;
 }
 
-// ============================================================
 //   MODULO PILA
-// ============================================================
 
 void modulopila(nodoPila*& p) {
     int op;
@@ -464,9 +494,7 @@ void pantallacargaIngresos(nodoPila*& p) {
     color(7);
 }
 
-// ============================================================
 //   MODULO COLA
-// ============================================================
 
 void modulocola(cola& q) {
     int op;
@@ -663,6 +691,344 @@ void pantallacargaPedidos(cola& q) {
     cout << "]";
     Sleep(400);
     color(7);
+}
+
+//   MODULO LISTA DOBLEMENTE ENLAZADA - INVENTARIO
+
+void insertarLista(listaDoble& lista) {
+    nodoLista* nuevo = new nodoLista();
+
+    nuevo->item.id = correlativoInventario++;
+    cout << "  Nombre producto  : "; getline(cin, nuevo->item.producto);
+    cout << "  Cantidad en bodega: "; cin >> nuevo->item.cantidad; cin.ignore();
+    cout << "  Cantidad minima  : "; cin >> nuevo->item.cantMinima; cin.ignore();
+    cout << "  Precio unitario  : Q"; cin >> nuevo->item.precio; cin.ignore();
+
+    nuevo->siguiente = NULL;
+    nuevo->anterior = lista.cola;
+
+    if (lista.cabeza == NULL) {
+        lista.cabeza = nuevo;
+    }
+    else {
+        lista.cola->siguiente = nuevo;
+    }
+    lista.cola = nuevo;
+    lista.cantidad++;
+}
+
+nodoLista* buscarNodoLista(listaDoble& lista, int id) {
+    nodoLista* aux = lista.cabeza;
+    while (aux != NULL) {
+        if (aux->item.id == id) return aux;
+        aux = aux->siguiente;
+    }
+    return NULL;
+}
+
+void buscarLista(const listaDoble& lista, int id) {
+
+    nodoLista* aux = lista.cabeza;
+    bool encontrado = false;
+
+    while (aux != NULL) {
+        if (aux->item.id == id) {
+            bool bajoStock = (aux->item.cantidad <= aux->item.cantMinima);
+
+            color(11);
+            cout << "\n  +------------------------------------+";
+            color(7);
+            cout << "\n  ID          : "; color(10); cout << aux->item.id; color(7);
+            cout << "\n  Producto    : " << aux->item.producto;
+            cout << "\n  Cantidad    : ";
+            if (bajoStock) { color(12); }
+            else { color(10); }
+            cout << aux->item.cantidad; color(7);
+            cout << "\n  Cant. minima: " << aux->item.cantMinima;
+            if (bajoStock) { color(12); cout << "  << STOCK BAJO"; color(7); }
+            cout << "\n  Precio      : Q" << fixed << aux->item.precio;
+            cout << "\n  Valor total : Q" << fixed << (aux->item.precio * aux->item.cantidad);
+            color(11);
+            cout << "\n  +------------------------------------+\n";
+            color(7);
+            encontrado = true;
+        }
+        aux = aux->siguiente;
+    }
+    if (!encontrado) {
+        color(12);
+        cout << "\n  No se encontro el producto con ID " << id << "\n";
+        color(7);
+    }
+}
+
+void eliminarLista(listaDoble& lista, int id) {
+    nodoLista* aux = buscarNodoLista(lista, id);
+
+    if (aux == NULL) {
+        color(12);
+        cout << "\n  No se encontro el ID " << id << "\n";
+        color(7);
+        return;
+    }
+
+    if (aux->anterior != NULL)
+        aux->anterior->siguiente = aux->siguiente;
+    else
+        lista.cabeza = aux->siguiente;
+
+    if (aux->siguiente != NULL)
+        aux->siguiente->anterior = aux->anterior;
+    else
+        lista.cola = aux->anterior;
+
+    delete aux;
+    lista.cantidad--;
+
+    color(10);
+    cout << "\n  Producto eliminado del inventario.\n";
+    color(7);
+}
+
+void modificarLista(listaDoble& lista, int id) {
+    nodoLista* aux = buscarNodoLista(lista, id);
+
+    if (aux == NULL) {
+        color(12);
+        cout << "\n  No se encontro el ID " << id << "\n";
+        color(7);
+        return;
+    }
+
+    color(11);
+    cout << "\n  Modificando producto ID [" << aux->item.id << "] - " << aux->item.producto << "\n";
+    color(7);
+    cout << "  Nuevo nombre     : "; getline(cin, aux->item.producto);
+    cout << "  Nueva cantidad   : "; cin >> aux->item.cantidad; cin.ignore();
+    cout << "  Nueva cant. min  : "; cin >> aux->item.cantMinima; cin.ignore();
+    cout << "  Nuevo precio   Q : "; cin >> aux->item.precio; cin.ignore();
+
+    color(10);
+    cout << "\n  Producto modificado correctamente.\n";
+    color(7);
+}
+
+void vaciarLista(listaDoble& lista) {
+    nodoLista* aux = lista.cabeza;
+    while (aux != NULL) {
+        nodoLista* temp = aux->siguiente;
+        delete aux;
+        aux = temp;
+    }
+    lista.cabeza = NULL;
+    lista.cola = NULL;
+    lista.cantidad = 0;
+}
+
+void mostrarLista(const listaDoble& lista) {
+    if (lista.cabeza == NULL) {
+        color(12);
+        cout << "\n  El inventario esta vacio.\n";
+        color(7);
+        return;
+    }
+
+    const int ANCHOS[4] = { 8, 22, 20, 16 };
+    const int COLS = 4;
+
+    auto lineaH = [&]() {
+        color(8);
+        cout << "  +";
+        for (int c = 0; c < COLS; c++) {
+            for (int k = 0; k < ANCHOS[c]; k++) cout << "-";
+            cout << "+";
+        }
+        cout << "\n";
+        };
+
+    auto celda = [&](const string& txt, int ancho, int col) {
+        string t = " " + txt;
+        if ((int)t.size() >= ancho) t = t.substr(0, ancho - 2) + ".";
+        cout << t;
+        color(8);
+        for (int k = (int)t.size(); k < ancho; k++) cout << " ";
+        cout << "|";
+        };
+
+    // Titulo
+    color(11);
+    cout << "\n  INVENTARIO - ARTICULOS DEPORTIVOS PARA CANGUROS";
+    cout << "  (" << lista.cantidad << " productos)\n\n";
+
+    lineaH();
+    color(14);
+    cout << "  |";
+    const string hdrs[4] = { " ID", " Producto", " Stock / Min.", " Precio" };
+    for (int c = 0; c < COLS; c++) {
+        string h = hdrs[c];
+        if ((int)h.size() >= ANCHOS[c]) h = h.substr(0, ANCHOS[c] - 1);
+        cout << h;
+        for (int k = (int)h.size(); k < ANCHOS[c]; k++) cout << " ";
+        color(8); cout << "|";
+    }
+    cout << "\n";
+    lineaH();
+
+    nodoLista* aux = lista.cabeza;
+    while (aux != NULL) {
+        bool bajoStock = (aux->item.cantidad <= aux->item.cantMinima);
+
+        string sId = to_string(aux->item.id);
+        string sProd = aux->item.producto;
+        string sStk = to_string(aux->item.cantidad) + " / " + to_string(aux->item.cantMinima);
+
+        char buf[32];
+        snprintf(buf, sizeof(buf), "Q%.2f", aux->item.precio);
+        string sPrecio = buf;
+
+        int cId = bajoStock ? 12 : 10;
+        int cProd = bajoStock ? 12 : 7;
+        int cStk = bajoStock ? 12 : 14;
+        int cPrice = bajoStock ? 12 : 11;
+
+        color(8); cout << "  |";
+        color(cId);    celda(sId, ANCHOS[0], 0);
+        color(cProd);  celda(sProd, ANCHOS[1], 1);
+        color(cStk);   celda(sStk, ANCHOS[2], 2);
+        color(cPrice); celda(sPrecio, ANCHOS[3], 3);
+        cout << "\n";
+
+        if (bajoStock) {
+            color(8); cout << "  |";
+            color(12);
+            string alerta = " !! STOCK BAJO !!";
+            cout << alerta;
+            int relleno = ANCHOS[0] + ANCHOS[1] + ANCHOS[2] + ANCHOS[3] + COLS - 1
+                - (int)alerta.size();
+            for (int k = 0; k < relleno; k++) cout << " ";
+            color(8); cout << "|\n";
+        }
+
+        lineaH();
+        aux = aux->siguiente;
+    }
+
+    double valorTotal = 0.0;
+    int    totalUnids = 0;
+    aux = lista.cabeza;
+    while (aux != NULL) {
+        valorTotal += aux->item.precio * aux->item.cantidad;
+        totalUnids += aux->item.cantidad;
+        aux = aux->siguiente;
+    }
+
+    char bufTotal[64];
+    snprintf(bufTotal, sizeof(bufTotal), "Q%.2f", valorTotal);
+
+    color(8);
+    cout << "  Unidades totales en bodega : "; color(11); cout << totalUnids; color(7);
+    cout << "\n";
+    color(8);
+    cout << "  Valor total del inventario : "; color(10); cout << bufTotal; color(7);
+    cout << "\n\n";
+}
+
+// Menu del modulo inventario (lista doble)
+void moduloLista(listaDoble& lista) {
+    int  op;
+    int  idBuscar, idEliminar, idModificar;
+    char conf;
+
+    do {
+        system("cls");
+        color(11);
+        cout << "========================================\n";
+        cout << "   MODULO INVENTARIO (LISTA DOBLE)\n";
+        cout << "========================================\n";
+        color(8);
+        cout << "  Navegacion bidireccional entre nodos\n";
+        cout << "  Productos registrados: "; color(11); cout << lista.cantidad; color(8);
+        cout << "\n";
+        color(11);
+        cout << "========================================\n\n";
+
+        color(7);
+        cout << "  1. Agregar producto\n";
+        cout << "  2. Eliminar producto\n";
+        cout << "  3. Vaciar inventario\n";
+        cout << "  4. Mostrar inventario (tabla)\n";
+        cout << "  5. Buscar producto\n";
+        cout << "  6. Modificar producto\n";
+        cout << "  7. Regresar\n\n";
+
+        color(8);
+        cout << "  Seleccione: ";
+        color(7);
+        cin >> op; cin.ignore();
+
+        switch (op) {
+        case 1:
+            insertarLista(lista);
+            color(10);
+            cout << "\n  Producto agregado al inventario.\n";
+            color(7);
+            break;
+
+        case 2:
+            if (lista.cabeza == NULL) {
+                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
+            }
+            else {
+                cout << "\n  Ingrese el ID a eliminar: ";
+                cin >> idEliminar; cin.ignore();
+                eliminarLista(lista, idEliminar);
+            }
+            break;
+
+        case 3:
+            if (lista.cabeza == NULL) {
+                color(12); cout << "\n  El inventario ya esta vacio.\n"; color(7);
+            }
+            else {
+                cout << "\n  Seguro que deseas vaciar el inventario? (Y/N): ";
+                cin >> conf; cin.ignore();
+                if (conf == 'Y' || conf == 'y') {
+                    vaciarLista(lista);
+                    color(10); cout << "\n  Inventario vaciado exitosamente.\n"; color(7);
+                }
+            }
+            break;
+
+        case 4:
+            mostrarLista(lista);
+            break;
+
+        case 5:
+            if (lista.cabeza == NULL) {
+                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
+            }
+            else {
+                cout << "\n  Ingrese el ID a buscar: ";
+                cin >> idBuscar; cin.ignore();
+                buscarLista(lista, idBuscar);
+            }
+            break;
+
+        case 6:
+            if (lista.cabeza == NULL) {
+                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
+            }
+            else {
+                cout << "\n  Ingrese el ID a modificar: ";
+                cin >> idModificar; cin.ignore();
+                modificarLista(lista, idModificar);
+            }
+            break;
+        }
+
+        if (op != 7) { cout << "\n"; system("pause"); }
+
+    } while (op != 7);
 }
 
 //   MODULO ARBOL BINARIO (ABB)
@@ -1383,9 +1749,7 @@ void moduloAVL(nodoAVL*& avl)
     } while (op != 7);
 }
 
-// ============================================================
 //   ESTETICA
-// ============================================================
 
 void color(int c) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -1437,6 +1801,8 @@ void cargando() {
     color(14);
     cout << "Inicializando modulo PILA...\n";  Sleep(500);
     cout << "Inicializando modulo COLA...\n";  Sleep(500);
+    cout << "Cargando base de datos...\n"; Sleep(500);
+    cout << "2 + 2 = 6...\n"; Sleep(500);
     cout << "Configurando entorno...\n";       Sleep(500);
     color(10);
     cout << "\nSistema listo!\n";

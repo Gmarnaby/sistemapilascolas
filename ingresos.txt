@@ -1,8 +1,1 @@
-<<<<<<< HEAD
 1|NIKE|10/04/26|Guantes de Box|200
-3|ADIDAS|10/04/26|Protector Bucal|100
-=======
-2|ADIDAS|04/07/26|Cascos con agujeros de oreja|23
-3|NIKE|23/02/26|Cinta de seguridad|45
-4|KINE|03/04/26|Guantes para canguros|34
->>>>>>> 3f8da73c29f6d96389d0ae11dc660213ffb62045
