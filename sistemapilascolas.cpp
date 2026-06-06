@@ -1768,7 +1768,7 @@ void portada() {
 
     lc("Curso    :  Programacion III", C_VALOR);
     lc("Lenguaje :  C++ (Estructurado)", C_VALOR);
-    lc("Entrega  :  Abril 2026", C_VALOR);
+    lc("Entrega  :  Junio 2026", C_VALOR);
 
     color(C_BORDE);
     cout << char(204); for (int i = 0;i < W;i++) cout << char(196); cout << char(185) << "\n";
@@ -1860,7 +1860,7 @@ bool iniciarSesion() {
 
     while (intentos > 0) {
         cls();
-        encabezado("INICIO DE SESION", "KANGAROO BOXING");
+        encabezado("INICIO DE SESION", "ARTICULOS DEPORTIVOS PARA CANGUROS - KANGAROO BOXING");
 
         color(C_LABEL); cout << "  Usuario    : "; color(C_VALOR); getline(cin, usuario);
         color(C_LABEL); cout << "  Contrasena : "; color(C_VALOR); getline(cin, contrasena);
