@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <iomanip>
 
+
 using namespace std;
 
 
@@ -410,7 +411,7 @@ int menuNavegable(const string& titulo, const string& subtitulo,
 
         color(C_BORDE); cout << char(186);
         color(C_LABEL);
-        string hint = "  Use " + string(1, char(24)) + char(25) + " y ENTER para seleccionar";
+        string hint = "  Use las FLECHAS y ENTER para seleccionar ";
         cout << hint;
         for (int i = (int)hint.size(); i < W; i++) cout << " ";
         color(C_BORDE); cout << char(186) << "\n";
@@ -1776,7 +1777,7 @@ void portada() {
     color(C_BORDE);
     cout << char(204); for (int i = 0;i < W;i++) cout << char(196); cout << char(185) << "\n";
 
-    lc("Marnaby G. Cux Mazat       2290-23-3596", C_VALOR);
+    lc("Marnaby Gilbertson Cux Mazat  2290-23-3596", C_VALOR);
     lc("Jose Andres Santizo Procopio  2290-24-12667", C_VALOR);
     lc("Miguel Angel Santos Garcia    2290-24-8950", C_VALOR);
 
