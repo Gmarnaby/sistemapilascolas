@@ -13,7 +13,9 @@
 
 using namespace std;
 
+
 //   ESTRUCTURAS
+
 
 struct ingresos {
     int correlativoIng = 0;
@@ -22,12 +24,10 @@ struct ingresos {
     string productoIng;
     int cantidadIng = 0;
 };
-
 struct nodoPila {
     ingresos ingreso;
     nodoPila* siguientePila;
 };
-
 struct pedidos {
     int correlativo = 0;
     string producto;
@@ -35,30 +35,25 @@ struct pedidos {
     string cliente;
     string direccion;
 };
-
 struct nodoCola {
     pedidos pedido;
     nodoCola* siguienteCola;
 };
-
 struct cola {
     nodoCola* primero;
     nodoCola* ultimo;
 };
-
 struct nodoArbol {
     pedidos pedido;
     nodoArbol* izquierda;
     nodoArbol* derecha;
 };
-
 struct nodoAVL {
     pedidos  pedido;
     nodoAVL* izquierda;
     nodoAVL* derecha;
     int      altura;
 };
-
 struct inventario {
     int    id = 0;
     string producto;
@@ -66,27 +61,41 @@ struct inventario {
     int    cantMinima = 0;
     double precio = 0.0;
 };
-
 struct nodoLista {
     inventario item;
     nodoLista* anterior;
     nodoLista* siguiente;
 };
-
 struct listaDoble {
     nodoLista* cabeza;
     nodoLista* cola;
     int        cantidad;
 };
+
+
 //   PROTOTIPOS
 
-// Estetica
-int  menuprincipal();
-int  submenu(string titulo);
-void dibujo();
-void portada();
-void color(int c);
-void cargando();
+//Estetica
+void   color(int c);
+void   cls();
+void   pausar();
+void   barra(char relleno = 205, int ancho = 62);   
+void   lineaSimple(int ancho = 62);                 
+void   encabezado(const string& modulo, const string& sub = "");
+void   mensajeOK(const string& msg);
+void   mensajeERROR(const string& msg);
+void   mensajeINFO(const string& msg);
+void   mensajeADVERTENCIA(const string& msg);
+void   separador();
+int    menuNavegable(const string& titulo, const string& subtitulo,
+    const vector<string>& opciones, int colorTitulo = 11);
+void   tarjetaIngreso(const ingresos& ing, void* ptr);
+void   tarjetaPedido(const pedidos& ped, void* ptr);
+void   tarjetaInventario(const inventario& inv, void* ptrAnt, void* ptr, void* ptrSig);
+void   dibujo();
+void   portada();
+void   cargando();
+bool   iniciarSesion();
 
 // Pila
 void modulopila(nodoPila*& p);
@@ -112,7 +121,7 @@ void actualizarPedidos(const cola& q);
 void cargarPedidos(cola& q);
 void pantallacargaPedidos(cola& q);
 
-// Lista Doble (Inventario)
+// Lista Doble
 void       moduloLista(listaDoble& lista);
 void       insertarLista(listaDoble& lista);
 void       eliminarLista(listaDoble& lista, int id);
@@ -155,64 +164,449 @@ nodoAVL* minimoAVL(nodoAVL* n);
 void     llenarNivelesAVL(nodoAVL* nodo, int nivel, int pos, int ancho,
     vector<vector<pair<nodoAVL*, int>>>& niveles);
 
+
 //   VARIABLES GLOBALES
 
 int correlativoPedidos = 1;
 int correlativoIngGlobal = 1;
 int correlativoInventario = 1;
 
+//   PALETA DE COLORES
+
+#define C_RESET     7
+#define C_BORDE     8    
+#define C_TITULO    11   
+#define C_SUBTIT    3     
+#define C_LABEL     8     
+#define C_VALOR     15    
+#define C_OK        10    
+#define C_ERROR     12    
+#define C_WARN      14    
+#define C_INFO      9     
+#define C_SELEC     10    
+#define C_NORMAL    7     
+#define C_SALIR     12    
+#define C_PUNTERO   14    
+#define C_MAYOREO   14    
+#define C_BAJOSTK   12    
+#define C_PRECIO    10    
+#define C_MEM       8     
+#define C_ARBOL_OK  10    
+#define C_ARBOL_L   14    
+#define C_ARBOL_CR  12    
+
+
+//FUNCIONES CENTRALIZADAS DE APARIENCIA
+
+
+void color(int c) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
+void cls() { system("cls"); }
+void pausar() { system("pause"); }
+
+
+void barra(char relleno, int ancho) {
+    color(C_BORDE);
+    for (int i = 0; i < ancho; i++) cout << relleno;
+    cout << "\n";
+    color(C_RESET);
+}
+
+void lineaSimple(int ancho) {
+    color(C_BORDE);
+    
+    for (int i = 0; i < ancho; i++) cout << char(196);
+    cout << "\n";
+    color(C_RESET);
+}
+
+
+void encabezado(const string& modulo, const string& sub) {
+    const int W = 62;
+    color(C_BORDE);
+    cout << char(201); 
+    for (int i = 0; i < W; i++) cout << char(205); 
+    cout << char(187) << "\n"; 
+
+    
+    int pad = (W - (int)modulo.size()) / 2;
+    color(C_BORDE); cout << char(186); 
+    color(C_TITULO);
+    for (int i = 0; i < pad; i++) cout << " ";
+    cout << modulo;
+    for (int i = 0; i < W - pad - (int)modulo.size(); i++) cout << " ";
+    color(C_BORDE); cout << char(186) << "\n"; 
+
+   
+    if (!sub.empty()) {
+        color(C_BORDE); cout << char(186); 
+        color(C_SUBTIT);
+        int pad2 = (W - (int)sub.size()) / 2;
+        for (int i = 0; i < pad2; i++) cout << " ";
+        cout << sub;
+        for (int i = 0; i < W - pad2 - (int)sub.size(); i++) cout << " ";
+        color(C_BORDE); cout << char(186) << "\n";
+    }
+
+    color(C_BORDE);
+    cout << char(200); 
+    for (int i = 0; i < W; i++) cout << char(205);
+    cout << char(188) << "\n\n"; 
+    color(C_RESET);
+}
+
+void separador() {
+    color(C_BORDE);
+    cout << " ";
+    for (int i = 0; i < 60; i++) cout << char(196);
+    cout << "\n";
+    color(C_RESET);
+}
+
+
+void mensajeOK(const string& msg) {
+    color(C_BORDE);  cout << " " << char(218);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    color(C_BORDE);  cout << " " << char(179);
+    color(C_OK);     cout << "  [  OK  ]  " << msg;
+    int relleno = 46 - (int)msg.size();
+    if (relleno < 0) relleno = 0;
+    for (int i = 0; i < relleno; i++) cout << " ";
+    color(C_BORDE);  cout << char(179) << "\n";
+
+    color(C_BORDE);  cout << " " << char(192);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(217) << "\n\n";
+    color(C_RESET);
+}
+
+
+void mensajeERROR(const string& msg) {
+    color(C_BORDE);  cout << " " << char(218);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    color(C_BORDE);  cout << " " << char(179);
+    color(C_ERROR);  cout << "  [ ERR  ]  " << msg;
+    int relleno = 46 - (int)msg.size();
+    if (relleno < 0) relleno = 0;
+    for (int i = 0; i < relleno; i++) cout << " ";
+    color(C_BORDE);  cout << char(179) << "\n";
+
+    color(C_BORDE);  cout << " " << char(192);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(217) << "\n\n";
+    color(C_RESET);
+}
+
+
+void mensajeINFO(const string& msg) {
+    color(C_BORDE);  cout << " " << char(218);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    color(C_BORDE);  cout << " " << char(179);
+    color(C_INFO);   cout << "  [ INFO ]  " << msg;
+    int relleno = 46 - (int)msg.size();
+    if (relleno < 0) relleno = 0;
+    for (int i = 0; i < relleno; i++) cout << " ";
+    color(C_BORDE);  cout << char(179) << "\n";
+
+    color(C_BORDE);  cout << " " << char(192);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(217) << "\n\n";
+    color(C_RESET);
+}
+
+// Mensaje advertencia
+void mensajeADVERTENCIA(const string& msg) {
+    color(C_BORDE);  cout << " " << char(218);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    color(C_BORDE);  cout << " " << char(179);
+    color(C_WARN);   cout << "  [ WARN ]  " << msg;
+    int relleno = 46 - (int)msg.size();
+    if (relleno < 0) relleno = 0;
+    for (int i = 0; i < relleno; i++) cout << " ";
+    color(C_BORDE);  cout << char(179) << "\n";
+
+    color(C_BORDE);  cout << " " << char(192);
+    for (int i = 0; i < 58; i++) cout << char(196);
+    cout << char(217) << "\n\n";
+    color(C_RESET);
+}
+
+
+// Menu navegable 
+
+int menuNavegable(const string& titulo, const string& subtitulo,
+    const vector<string>& opciones, int colorTitulo)
+{
+    int op = 0;
+    int tecla = 0;
+    int n = (int)opciones.size();
+
+    do {
+        cls();
+
+        const int W = 62;
+        color(C_BORDE);
+        cout << char(201);
+        for (int i = 0; i < W; i++) cout << char(205);
+        cout << char(187) << "\n";
+
+        auto lineaCentrada = [&](const string& txt, int c) {
+            int pad = (W - (int)txt.size()) / 2;
+            color(C_BORDE); cout << char(186);
+            color(c);
+            for (int i = 0; i < pad; i++) cout << " ";
+            cout << txt;
+            for (int i = 0; i < W - pad - (int)txt.size(); i++) cout << " ";
+            color(C_BORDE); cout << char(186) << "\n";
+            };
+
+        lineaCentrada(titulo, colorTitulo);
+        if (!subtitulo.empty()) lineaCentrada(subtitulo, C_SUBTIT);
+
+        color(C_BORDE);
+        cout << char(204);
+        for (int i = 0; i < W; i++) cout << char(205);
+        cout << char(185) << "\n";
+
+
+        for (int i = 0; i < n; i++) {
+            color(C_BORDE); cout << char(186);
+            bool selec = (i == op);
+            bool esUlti = (i == n - 1); 
+
+            if (selec) {
+                color(C_PUNTERO); cout << "  " << char(16) << char(16) << " "; 
+                color(esUlti ? C_SALIR : C_SELEC);
+
+                cout << "[ " << opciones[i] << " ]";
+
+                int used = 7 + (int)opciones[i].size() + 2;
+                for (int k = used; k < W; k++) cout << " ";
+            }
+            else {
+                color(C_BORDE); cout << "      ";
+                color(esUlti ? C_ERROR : C_NORMAL);
+                cout << opciones[i];
+                int used = 6 + (int)opciones[i].size();
+                for (int k = used; k < W; k++) cout << " ";
+            }
+            color(C_BORDE); cout << char(186) << "\n";
+        }
+
+        color(C_BORDE);
+        cout << char(204);
+        for (int i = 0; i < W; i++) cout << char(196);
+        cout << char(185) << "\n";
+
+        color(C_BORDE); cout << char(186);
+        color(C_LABEL);
+        string hint = "  Use " + string(1, char(24)) + char(25) + " y ENTER para seleccionar";
+        cout << hint;
+        for (int i = (int)hint.size(); i < W; i++) cout << " ";
+        color(C_BORDE); cout << char(186) << "\n";
+
+        color(C_BORDE);
+        cout << char(200);
+        for (int i = 0; i < W; i++) cout << char(205);
+        cout << char(188) << "\n";
+
+        tecla = _getch();
+        if (tecla == 72) { op--; if (op < 0) op = n - 1; }
+        if (tecla == 80) { op++; if (op >= n) op = 0; }
+
+    } while (tecla != 13);
+
+    color(C_RESET);
+    return op;
+}
+
+// Tarjeta de ingreso (Pila)
+
+void tarjetaIngreso(const ingresos& ing, void* ptr) {
+    color(C_BORDE);
+    cout << "  " << char(218);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    auto fila = [](const string& lbl, const string& val, int cLbl, int cVal) {
+        color(C_BORDE); cout << "  " << char(179) << " ";
+        color(cLbl);    cout << left << setw(18) << lbl;
+        color(C_BORDE); cout << char(179) << " ";
+        color(cVal);    cout << left << setw(35) << val.substr(0, 35);
+        color(C_BORDE); cout << char(179) << "\n";
+        };
+
+    fila("Ingreso No.", to_string(ing.correlativoIng), C_LABEL, C_WARN);
+    fila("Proveedor", ing.proveedorIng, C_LABEL, C_VALOR);
+    fila("Fecha", ing.fechaIng, C_LABEL, C_INFO);
+    fila("Producto", ing.productoIng, C_LABEL, C_VALOR);
+    fila("Cantidad", to_string(ing.cantidadIng), C_LABEL, C_OK);
+
+
+    ostringstream ss; ss << ptr;
+    color(C_BORDE); cout << "  " << char(179) << " ";
+    color(C_LABEL); cout << left << setw(18) << "Direccion Mem.";
+    color(C_BORDE); cout << char(179) << " ";
+    color(C_MEM);   cout << left << setw(35) << ss.str().substr(0, 35);
+    color(C_BORDE); cout << char(179) << "\n";
+
+    color(C_BORDE);
+    cout << "  " << char(192);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(217) << "\n";
+    color(C_RESET);
+}
+
+
+// Tarjeta de pedido (Cola / Arboles)
+
+void tarjetaPedido(const pedidos& ped, void* ptr) {
+    bool mayoreo = (ped.cantidad >= 50);
+    color(C_BORDE);
+    cout << "  " << char(218);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    auto fila = [](const string& lbl, const string& val, int cLbl, int cVal) {
+        color(C_BORDE); cout << "  " << char(179) << " ";
+        color(cLbl);    cout << left << setw(18) << lbl;
+        color(C_BORDE); cout << char(179) << " ";
+        color(cVal);    cout << left << setw(35) << val.substr(0, 35);
+        color(C_BORDE); cout << char(179) << "\n";
+        };
+
+    fila("Pedido No.", to_string(ped.correlativo), C_LABEL, C_WARN);
+    fila("Producto", ped.producto, C_LABEL, C_VALOR);
+    fila("Cantidad", to_string(ped.cantidad) + (mayoreo ? "  << MAYOREO 15%" : ""),
+        C_LABEL, mayoreo ? C_MAYOREO : C_OK);
+    fila("Cliente", ped.cliente, C_LABEL, C_TITULO);
+    fila("Direccion", ped.direccion, C_LABEL, C_VALOR);
+
+    if (ptr) {
+        ostringstream ss; ss << ptr;
+        color(C_BORDE); cout << "  " << char(179) << " ";
+        color(C_LABEL); cout << left << setw(18) << "Direccion Mem.";
+        color(C_BORDE); cout << char(179) << " ";
+        color(C_MEM);   cout << left << setw(35) << ss.str().substr(0, 35);
+        color(C_BORDE); cout << char(179) << "\n";
+    }
+
+    color(C_BORDE);
+    cout << "  " << char(192);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(217) << "\n";
+    color(C_RESET);
+}
+
+
+// Tarjeta de inventario (Lista Doble)
+
+void tarjetaInventario(const inventario& inv, void* ptrAnt, void* ptr, void* ptrSig) {
+    bool bajo = (inv.cantidad <= inv.cantMinima);
+    int cCant = bajo ? C_BAJOSTK : C_OK;
+
+    color(C_BORDE);
+    cout << "  " << char(218);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(191) << "\n";
+
+    auto fila = [](const string& lbl, const string& val, int cLbl, int cVal) {
+        color(C_BORDE); cout << "  " << char(179) << " ";
+        color(cLbl);    cout << left << setw(18) << lbl;
+        color(C_BORDE); cout << char(179) << " ";
+        color(cVal);    cout << left << setw(35) << val.substr(0, 35);
+        color(C_BORDE); cout << char(179) << "\n";
+        };
+
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Q%.2f", inv.precio);
+    char bufT[32];
+    snprintf(bufT, sizeof(bufT), "Q%.2f", inv.precio * inv.cantidad);
+
+    fila("ID", to_string(inv.id), C_LABEL, C_WARN);
+    fila("Producto", inv.producto, C_LABEL, C_VALOR);
+    fila("Cantidad", to_string(inv.cantidad) + (bajo ? "  << STOCK BAJO" : ""),
+        C_LABEL, cCant);
+    fila("Cant. Minima", to_string(inv.cantMinima), C_LABEL, C_LABEL);
+    fila("Precio Unit.", string(buf), C_LABEL, C_PRECIO);
+    fila("Valor Total", string(bufT), C_LABEL, C_PRECIO);
+
+   
+    auto filaPtr = [](const string& lbl, void* p) {
+        ostringstream ss; ss << p;
+        color(C_BORDE); cout << "  " << char(179) << " ";
+        color(C_LABEL); cout << left << setw(18) << lbl;
+        color(C_BORDE); cout << char(179) << " ";
+        color(C_MEM);   cout << left << setw(35) << ss.str().substr(0, 35);
+        color(C_BORDE); cout << char(179) << "\n";
+        };
+    filaPtr("Dir. Anterior", ptrAnt);
+    filaPtr("Dir. Nodo", ptr);
+    filaPtr("Dir. Siguiente", ptrSig);
+
+    color(C_BORDE);
+    cout << "  " << char(192);
+    for (int i = 0; i < 56; i++) cout << char(196);
+    cout << char(217) << "\n";
+    color(C_RESET);
+}
+
+
 //   MAIN
+
 
 int main()
 {
-    cola q;
-    q.primero = NULL;
-    q.ultimo = NULL;
-
+    cola       q = { NULL, NULL };
     nodoPila* p = NULL;
     listaDoble lista = { NULL, NULL, 0 };
     nodoArbol* arbol = NULL;
     nodoAVL* avl = NULL;
 
-    int op;
     dibujo();
     portada();
+    if (!iniciarSesion()) return 0;
     cargando();
 
+    int op;
     do {
-        op = menuprincipal();
+        op = menuNavegable(
+            "SISTEMA DE CONTROL DE INVENTARIO",
+            "KANGAROO BOXING",
+            { "Modulo PILA  (Ingresos)",
+              "Modulo COLA  (Pedidos)",
+              "Modulo LISTA DOBLE  (Inventario)",
+              "Modulo ARBOL ABB",
+              "Modulo ARBOL AVL",
+              "Salir del sistema" },
+            C_TITULO
+        );
+
         switch (op) {
-        case 0:
-            pantallacargaIngresos(p);
-            modulopila(p);
-            break;
-        case 1:
-            pantallacargaPedidos(q);
-            modulocola(q);
-            break;
-        case 2:
-            moduloLista(lista);
-            break;
-        case 3:
-            moduloarbol(arbol);
-            break;
-        case 4:
-            moduloAVL(avl);
-            break;
+        case 0: pantallacargaIngresos(p); modulopila(p);   break;
+        case 1: pantallacargaPedidos(q);  modulocola(q);   break;
+        case 2: moduloLista(lista);                         break;
+        case 3: moduloarbol(arbol);                         break;
+        case 4: moduloAVL(avl);                             break;
         case 5:
-            system("cls");
-            color(12);
-            cout << "========================================\n";
-            cout << "         SALIENDO DEL SISTEMA\n";
-            cout << "========================================\n\n";
-            color(11);
-            cout << "Guardando datos";
-            for (int i = 0; i < 3; i++) { cout << "."; Sleep(300); }
+            cls();
+            encabezado("SALIENDO DEL SISTEMA", "Hasta luego");
+            color(C_WARN);  cout << "  Guardando datos";
+            for (int i = 0; i < 3; i++) { Sleep(300); cout << "."; }
             cout << "\n\n";
-            color(10);
-            cout << "Cerrando aplicacion";
+            color(C_OK);    cout << "  Cerrando aplicacion";
             Sleep(600);
-            color(7);
+            color(C_RESET); cout << "\n\n";
             break;
         }
     } while (op != 5);
@@ -220,88 +614,9 @@ int main()
     return 0;
 }
 
-//   MENU PRINCIPAL
-
-int menuprincipal() {
-    int opcion = 0;
-    int tecla;
-
-    do {
-        system("cls");
-        color(11);
-        cout << "==================================================\n";
-        cout << "          SISTEMA DE CONTROL DE INVENTARIO\n";
-        cout << "         ARTICULOS DEPORTIVOS PARA CANGUROS \n";
-        cout << "==================================================\n\n";
-        color(7);
-        cout << "Seleccione una opcion:\n\n";
-
-        if (opcion == 0) { color(10); cout << "   >> [ MODULO PILA ]\n"; }
-        else { color(7);  cout << "      Modulo PILA\n"; }
-        if (opcion == 1) { color(10); cout << "   >> [ MODULO COLA ]\n"; }
-        else { color(7);  cout << "      Modulo COLA\n"; }
-        if (opcion == 2) { color(10); cout << "   >> [ MODULO LISTA DOBLE ]\n"; }
-        else { color(7);  cout << "      Modulo LISTA DOBLE\n"; }
-        if (opcion == 3) { color(10); cout << "   >> [ MODULO ARBOL ABB ]\n"; }
-        else { color(7);  cout << "      Modulo ARBOL ABB\n"; }
-        if (opcion == 4) { color(10); cout << "   >> [ MODULO ARBOL AVL ]\n"; }
-        else { color(7);  cout << "      Modulo ARBOL AVL\n"; }
-        if (opcion == 5) { color(12); cout << "   >> [ SALIR ]\n"; }
-        else { color(7);  cout << "      Salir\n"; }
-
-        color(8);
-        cout << "\nUse las flechas y ENTER para seleccionar";
-        tecla = _getch();
-
-        if (tecla == 72) opcion--;
-        if (tecla == 80) opcion++;
-        if (opcion < 0) opcion = 5;
-        if (opcion > 5) opcion = 0;
-
-    } while (tecla != 13);
-
-    return opcion;
-}
-
-//   SUB MENU
-
-int submenu(string titulo) {
-    int opcion = 0;
-    int tecla;
-
-    do {
-        system("cls");
-        color(11);
-        cout << "========================================\n";
-        cout << "        " << titulo << "\n";
-        cout << "========================================\n\n";
-
-        if (opcion == 0) { color(10); cout << "   >>   [ INGRESAR DATOS ]\n"; }
-        else { color(8);  cout << "        Ingresar datos\n"; }
-        if (opcion == 1) { color(10); cout << "   >>   [ ELIMINAR ]\n"; }
-        else { color(8);  cout << "        Eliminar\n"; }
-        if (opcion == 2) { color(10); cout << "   >>   [ MOSTRAR DATOS ]\n"; }
-        else { color(8);  cout << "        Mostrar datos\n"; }
-        if (opcion == 3) { color(10); cout << "   >>   [ BUSCAR ]\n"; }
-        else { color(8);  cout << "        Buscar\n"; }
-        if (opcion == 4) { color(10); cout << "   >>   [ MODIFICAR ]\n"; }
-        else { color(8);  cout << "        Modificar\n"; }
-        if (opcion == 5) { color(12); cout << "   >>   [ REGRESAR ]\n"; }
-        else { color(8);  cout << "        Regresar\n"; }
-
-        tecla = _getch();
-        if (tecla == 72) opcion--;
-        if (tecla == 80) opcion++;
-        if (opcion < 0) opcion = 5;
-        if (opcion > 5) opcion = 0;
-
-    } while (tecla != 13);
-
-    color(7);
-    return opcion;
-}
 
 //   MODULO PILA
+
 
 void modulopila(nodoPila*& p) {
     int op;
@@ -310,55 +625,85 @@ void modulopila(nodoPila*& p) {
     char res;
 
     do {
-        op = submenu("INGRESOS PENDIENTES DE VALIDACION");
+        op = menuNavegable(
+            "MODULO PILA",
+            "INGRESOS PENDIENTES DE VALIDACION",
+            { "Registrar ingreso",
+              "Validar (POP)",
+              "Mostrar pila",
+              "Buscar ingreso",
+              "Modificar ingreso",
+              "Regresar al menu principal" },
+            C_TITULO
+        );
 
+        cls();
         switch (op) {
         case 0:
-            cout << "\n\n~] REGISTRAR INGRESO DE PRODUCTO [~" << endl;
+            encabezado("REGISTRAR INGRESO DE PRODUCTO");
             correPush = push(p);
-            cout << "\n\nEL INGRESO NO. " << correPush << " FUE REGISTRADO CON EXITO :D";
+            mensajeOK("Ingreso No." + to_string(correPush) + " registrado con exito");
+            separador();
+            color(C_TITULO); cout << "\n  Estado actual de la pila:\n\n";
+            mostrarpila(p);
             break;
+
         case 1:
+            encabezado("VALIDAR INGRESO (POP)");
             if (p != NULL) {
-                do {
-                    cout << "\n\nVALIDARAS EL INGRESO " << p->ingreso.correlativoIng
-                        << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res; cin.ignore();
-                    if (res == 'Y' || res == 'y') {
-                        x = pop(p);
-                        cout << "\n\nEL REGISTRO NO. " << x << " FUE VALIDADO";
-                        break;
-                    }
-                    else if (res == 'N' || res == 'n') break;
-                } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
+                color(C_LABEL); cout << "  Se validara el ingreso No. ";
+                color(C_WARN);  cout << p->ingreso.correlativoIng << "\n";
+                color(C_LABEL); cout << "  Desea continuar? (Y/N): ";
+                color(C_VALOR); cin >> res; cin.ignore();
+                if (res == 'Y' || res == 'y') {
+                    x = pop(p);
+                    mensajeOK("Ingreso No." + to_string(x) + " validado correctamente");
+                    separador();
+                    color(C_TITULO); cout << "\n  Estado actual de la pila:\n\n";
+                    if (p != NULL) mostrarpila(p);
+                    else mensajeINFO("La pila esta vacia");
+                }
             }
-            else cout << "\n\nNO EXISTEN INGRESOS A VALIDAR VUELVE MAS TARDE :D";
+            else {
+                mensajeADVERTENCIA("No existen ingresos pendientes de validacion");
+            }
             break;
+
         case 2:
+            encabezado("MOSTRAR PILA DE INGRESOS");
             if (p != NULL) mostrarpila(p);
-            else cout << "NO EXISTEN INGRESOS PARA MOSTRAR REGRESA MAS TARDE :(" << endl;
+            else mensajeADVERTENCIA("No hay ingresos registrados");
             break;
+
         case 3:
-            cout << "\n\nINGRESE EL NO. DE INGRESO PARA BUSCAR: "; cin >> busqueda; cin.ignore();
+            encabezado("BUSCAR INGRESO");
+            color(C_LABEL); cout << "  Ingrese el No. de ingreso a buscar: ";
+            color(C_VALOR); cin >> busqueda; cin.ignore();
             buscarpila(p, busqueda);
             break;
+
         case 4:
-            cout << "\n\nINGRESE EL NO. DE INGRESO PARA MODIFICAR: "; cin >> modificacion; cin.ignore();
+            encabezado("MODIFICAR INGRESO");
+            color(C_LABEL); cout << "  Ingrese el No. de ingreso a modificar: ";
+            color(C_VALOR); cin >> modificacion; cin.ignore();
             modificarpila(p, modificacion);
             break;
         }
-        cout << endl;
-        system("pause");
-        system("cls");
+
+        if (op != 5) { cout << "\n"; pausar(); }
+
     } while (op != 5);
 }
 
 int push(nodoPila*& p) {
     nodoPila* aux = new nodoPila();
     aux->ingreso.correlativoIng = correlativoIngGlobal++;
-    cout << "Ingrese el proveedor del producto: "; getline(cin, aux->ingreso.proveedorIng);
-    cout << "Ingrese la fecha de ingreso (dd/mm/yy): "; getline(cin, aux->ingreso.fechaIng);
-    cout << "Ingrese el nombre del producto: "; getline(cin, aux->ingreso.productoIng);
-    cout << "Ingrese la cantidad de producto: "; cin >> aux->ingreso.cantidadIng; cin.ignore();
+
+    color(C_LABEL); cout << "  Proveedor del producto : "; color(C_VALOR); getline(cin, aux->ingreso.proveedorIng);
+    color(C_LABEL); cout << "  Fecha de ingreso (dd/mm/yy): "; color(C_VALOR); getline(cin, aux->ingreso.fechaIng);
+    color(C_LABEL); cout << "  Nombre del producto    : "; color(C_VALOR); getline(cin, aux->ingreso.productoIng);
+    color(C_LABEL); cout << "  Cantidad de producto   : "; color(C_VALOR); cin >> aux->ingreso.cantidadIng; cin.ignore();
+
     aux->siguientePila = p;
     p = aux;
     guardarIngreso(p);
@@ -376,14 +721,16 @@ int pop(nodoPila*& p) {
 
 void mostrarpila(nodoPila*& p) {
     nodoPila* aux = p;
+    int contador = 0;
     while (aux != NULL) {
-        cout << "\n\n+--------------------------------+" << endl;
-        cout << "  Ingreso no: " << aux->ingreso.correlativoIng << endl;
-        cout << "  Proveedor del producto: " << aux->ingreso.proveedorIng << endl;
-        cout << "  Nombre del producto: " << aux->ingreso.productoIng << endl;
-        cout << "+--------------------------------+" << endl;
+        tarjetaIngreso(aux->ingreso, aux);
+        cout << "\n";
         aux = aux->siguientePila;
+        contador++;
     }
+    color(C_LABEL); cout << "  Total de ingresos en pila: ";
+    color(C_WARN);  cout << contador << "\n";
+    color(C_RESET);
 }
 
 void modificarpila(nodoPila*& p, int correModificarIng) {
@@ -391,16 +738,17 @@ void modificarpila(nodoPila*& p, int correModificarIng) {
     bool encontrado = false;
     while (aux != NULL) {
         if (aux->ingreso.correlativoIng == correModificarIng) {
-            cout << "\nIngreso No. [" << aux->ingreso.correlativoIng << "]" << endl;
-            cout << "\nIngrese el Proveedor: "; getline(cin, aux->ingreso.proveedorIng);
-            cout << "Ingrese la fecha (dd/mm/yy): "; getline(cin, aux->ingreso.fechaIng);
-            cout << "Ingrese el nombre del producto: "; getline(cin, aux->ingreso.productoIng);
-            cout << "Ingrese la cantidad de producto: "; cin >> aux->ingreso.cantidadIng; cin.ignore();
+            color(C_TITULO); cout << "\n  Modificando ingreso No. [" << aux->ingreso.correlativoIng << "]\n\n";
+            color(C_LABEL);  cout << "  Proveedor      : "; color(C_VALOR); getline(cin, aux->ingreso.proveedorIng);
+            color(C_LABEL);  cout << "  Fecha          : "; color(C_VALOR); getline(cin, aux->ingreso.fechaIng);
+            color(C_LABEL);  cout << "  Nombre producto: "; color(C_VALOR); getline(cin, aux->ingreso.productoIng);
+            color(C_LABEL);  cout << "  Cantidad       : "; color(C_VALOR); cin >> aux->ingreso.cantidadIng; cin.ignore();
+            mensajeOK("Ingreso modificado correctamente");
             encontrado = true;
         }
         aux = aux->siguientePila;
     }
-    if (!encontrado) cout << "\nNO SE ENCONTRO EL INGRESO >:C" << endl;
+    if (!encontrado) mensajeERROR("No se encontro el ingreso No." + to_string(correModificarIng));
 }
 
 void buscarpila(nodoPila*& p, int correBuscarIng) {
@@ -408,16 +756,12 @@ void buscarpila(nodoPila*& p, int correBuscarIng) {
     bool encontrado = false;
     while (aux != NULL) {
         if (aux->ingreso.correlativoIng == correBuscarIng) {
-            cout << "\n\nIngreso No. [" << aux->ingreso.correlativoIng << "]" << endl;
-            cout << "\nProveedor: " << aux->ingreso.proveedorIng << endl;
-            cout << "Fecha: " << aux->ingreso.fechaIng << endl;
-            cout << "Nombre del Producto: " << aux->ingreso.productoIng << endl;
-            cout << "Cantidad de Producto: " << aux->ingreso.cantidadIng << endl;
+            tarjetaIngreso(aux->ingreso, aux);
             encontrado = true;
         }
         aux = aux->siguientePila;
     }
-    if (!encontrado) cout << "\nNO SE ENCONTRO EL REGISTRO INTENTE MAS TARDE >:C" << endl;
+    if (!encontrado) mensajeERROR("No se encontro el ingreso No." + to_string(correBuscarIng));
 }
 
 void guardarIngreso(nodoPila*& p) {
@@ -448,18 +792,17 @@ void cargarIngreso(nodoPila*& p) {
     ifstream archivo("ingresos.txt");
     string linea;
     if (archivo.fail()) {
-        cout << "Fallo al cargar los ingresos contacte con servicio tecnico" << endl;
+        mensajeERROR("Fallo al cargar ingresos - contacte servicio tecnico");
         exit(1);
     }
-    int maxCorrelativoIng = 0;
+    int maxCorr = 0;
     while (getline(archivo, linea)) {
         stringstream ss(linea);
         string dato;
         nodoPila* nuevo = new nodoPila;
         getline(ss, dato, '|');
         nuevo->ingreso.correlativoIng = stoi(dato);
-        if (nuevo->ingreso.correlativoIng > maxCorrelativoIng)
-            maxCorrelativoIng = nuevo->ingreso.correlativoIng;
+        if (nuevo->ingreso.correlativoIng > maxCorr) maxCorr = nuevo->ingreso.correlativoIng;
         getline(ss, nuevo->ingreso.proveedorIng, '|');
         getline(ss, nuevo->ingreso.fechaIng, '|');
         getline(ss, nuevo->ingreso.productoIng, '|');
@@ -469,32 +812,28 @@ void cargarIngreso(nodoPila*& p) {
         p = nuevo;
     }
     archivo.close();
-    correlativoIngGlobal = maxCorrelativoIng + 1;
+    correlativoIngGlobal = maxCorr + 1;
 }
 
 void pantallacargaIngresos(nodoPila*& p) {
-    system("cls");
-    color(14);
-    cout << "========================================\n";
-    cout << "   ACCEDIENDO A INGRESOS DE PRODUCTOS \n";
-    cout << "========================================\n\n";
-    color(11);
-    cout << "Cargando";
-    for (int i = 0; i < 3; i++) { cout << "."; Sleep(300); }
-    cout << "\n\n";
-    color(10);
-    cout << "[";
+    cls();
+    encabezado("CARGANDO MODULO PILA", "Ingresos Pendientes de Validacion");
+    color(C_LABEL); cout << "  Accediendo a datos";
+    for (int i = 0; i < 3; i++) { Sleep(300); cout << "."; }
+    cout << "\n\n  [";
+    color(C_OK);
     for (int i = 0; i < 20; i++) {
         if (i == 5) cargarIngreso(p);
         cout << char(219);
-        Sleep(70);
+        Sleep(60);
     }
-    cout << "]";
-    Sleep(400);
-    color(7);
+    color(C_RESET); cout << "] ";
+    color(C_OK); cout << "100%\n\n";
+    color(C_RESET);
 }
 
 //   MODULO COLA
+
 
 void modulocola(cola& q) {
     int op;
@@ -503,60 +842,95 @@ void modulocola(cola& q) {
     int x;
 
     do {
-        op = submenu("PEDIDOS DE CLIENTES");
+        op = menuNavegable(
+            "MODULO COLA",
+            "PEDIDOS DE CLIENTES",
+            { "Ingresar pedido",
+              "Despachar pedido (DESENCOLAR)",
+              "Mostrar cola",
+              "Buscar pedido",
+              "Modificar pedido",
+              "Regresar al menu principal" },
+            C_TITULO
+        );
+
+        cls();
         switch (op) {
         case 0:
-            cout << "\n\n~] INGRESAR UN PEDIDO DE PRODUCTOS [~" << endl;
+            encabezado("INGRESAR PEDIDO DE CLIENTE");
             correEncolar = encolar(q);
-            cout << "\n\n EL PEDIDO " << correEncolar << " FUE INGRESADO CORRECTAMENTE";
+            mensajeOK("Pedido No." + to_string(correEncolar) + " ingresado correctamente");
+            separador();
+            color(C_TITULO); cout << "\n  Estado actual de la cola:\n\n";
+            mostrarcola(q);
             break;
+
         case 1:
+            encabezado("DESPACHAR PEDIDO");
             if (q.primero != NULL) {
-                do {
-                    cout << "\n\nDESPACHARAS EL PEDIDO " << q.primero->pedido.correlativo
-                        << "\nQUIERES CONTINUAR?  (Y/N) "; cin >> res; cin.ignore();
-                    if (res == 'Y' || res == 'y') {
-                        x = desencolar(q);
-                        cout << "\n\nEL PEDIDO " << x << " FUE DESPACHADO";
-                        break;
-                    }
-                    else if (res == 'N' || res == 'n') break;
-                } while (res != 'y' && res != 'Y' && res != 'n' && res != 'N');
+                color(C_LABEL); cout << "  Se despachara el pedido No. ";
+                color(C_WARN);  cout << q.primero->pedido.correlativo << "\n";
+                color(C_LABEL); cout << "  Desea continuar? (Y/N): ";
+                color(C_VALOR); cin >> res; cin.ignore();
+                if (res == 'Y' || res == 'y') {
+                    x = desencolar(q);
+                    mensajeOK("Pedido No." + to_string(x) + " despachado correctamente");
+                    separador();
+                    color(C_TITULO); cout << "\n  Estado actual de la cola:\n\n";
+                    if (q.primero != NULL) mostrarcola(q);
+                    else mensajeINFO("La cola esta vacia");
+                }
             }
-            else cout << "\n\nNO EXISTEN PEDIDOS A DESPACHAR VUELVE MAS TARDE :D";
+            else {
+                mensajeADVERTENCIA("No hay pedidos pendientes de despacho");
+            }
             break;
+
         case 2:
+            encabezado("MOSTRAR COLA DE PEDIDOS");
             if (q.primero != NULL) mostrarcola(q);
-            else cout << "\n\nNO EXISTEN PEDIDOS PARA MOSTRAR VUELVE MAS TARDE :D";
+            else mensajeADVERTENCIA("No hay pedidos registrados");
             break;
+
         case 3:
+            encabezado("BUSCAR PEDIDO");
             if (q.primero != NULL) {
-                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA BUSCAR: "; cin >> correBuscar; cin.ignore();
+                color(C_LABEL); cout << "  Numero de pedido a buscar: ";
+                color(C_VALOR); cin >> correBuscar; cin.ignore();
                 buscarcola(q, correBuscar);
             }
-            else cout << "\n\nNO EXISTEN PEDIDOS A BUSCAR VUELVE MAS TARDE :D";
+            else {
+                mensajeADVERTENCIA("No hay pedidos registrados");
+            }
             break;
+
         case 4:
+            encabezado("MODIFICAR PEDIDO");
             if (q.primero != NULL) {
-                cout << "\n\nINGRESE EL NUMERO DE PEDIDO QUE QUIERA MODIFICAR: "; cin >> correModificar; cin.ignore();
+                color(C_LABEL); cout << "  Numero de pedido a modificar: ";
+                color(C_VALOR); cin >> correModificar; cin.ignore();
                 modificarcola(q, correModificar);
             }
-            else cout << "\n\nNO EXISTEN PEDIDOS PARA MODIFICAR REALIZA TU CHAMBA PORFA";
+            else {
+                mensajeADVERTENCIA("No hay pedidos registrados");
+            }
             break;
         }
-        cout << endl;
-        system("pause");
-        system("cls");
+
+        if (op != 5) { cout << "\n"; pausar(); }
+
     } while (op != 5);
 }
 
 int encolar(cola& q) {
     nodoCola* aux = new nodoCola;
     aux->pedido.correlativo = correlativoPedidos++;
-    cout << "Ingrese el producto del cliente: ";  getline(cin, aux->pedido.producto);
-    cout << "Ingrese la cantidad de productos: "; cin >> aux->pedido.cantidad; cin.ignore();
-    cout << "Ingrese el nombre del cliente: ";    getline(cin, aux->pedido.cliente);
-    cout << "Ingrese la direccion del cliente: "; getline(cin, aux->pedido.direccion);
+
+    color(C_LABEL); cout << "  Producto           : "; color(C_VALOR); getline(cin, aux->pedido.producto);
+    color(C_LABEL); cout << "  Cantidad           : "; color(C_VALOR); cin >> aux->pedido.cantidad; cin.ignore();
+    color(C_LABEL); cout << "  Nombre del cliente : "; color(C_VALOR); getline(cin, aux->pedido.cliente);
+    color(C_LABEL); cout << "  Direccion          : "; color(C_VALOR); getline(cin, aux->pedido.direccion);
+
     aux->siguienteCola = NULL;
     if (q.primero == NULL) q.primero = aux;
     else q.ultimo->siguienteCola = aux;
@@ -566,9 +940,8 @@ int encolar(cola& q) {
 }
 
 int desencolar(cola& q) {
-    int corre;
     nodoCola* aux = q.primero;
-    corre = aux->pedido.correlativo;
+    int corre = aux->pedido.correlativo;
     q.primero = q.primero->siguienteCola;
     delete aux;
     actualizarPedidos(q);
@@ -577,10 +950,16 @@ int desencolar(cola& q) {
 
 void mostrarcola(cola q) {
     nodoCola* aux = q.primero;
+    int contador = 0;
     while (aux != NULL) {
-        cout << "   [" << aux->pedido.correlativo << " - " << aux->pedido.cliente << "]";
+        tarjetaPedido(aux->pedido, aux);
+        cout << "\n";
         aux = aux->siguienteCola;
+        contador++;
     }
+    color(C_LABEL); cout << "  Total de pedidos en cola: ";
+    color(C_WARN);  cout << contador << "\n";
+    color(C_RESET);
 }
 
 void buscarcola(cola q, int corre) {
@@ -588,16 +967,12 @@ void buscarcola(cola q, int corre) {
     bool encontrado = false;
     while (aux != NULL) {
         if (aux->pedido.correlativo == corre) {
-            cout << "PEDIDO NO. [" << aux->pedido.correlativo << "]" << endl;
-            cout << "\nProducto: " << aux->pedido.producto << endl;
-            cout << "Cantidad: " << aux->pedido.cantidad << endl;
-            cout << "Cliente: " << aux->pedido.cliente << endl;
-            cout << "Direccion: " << aux->pedido.direccion << endl;
+            tarjetaPedido(aux->pedido, aux);
             encontrado = true;
         }
         aux = aux->siguienteCola;
     }
-    if (!encontrado) cout << "\nNo se encontro el pedido :(";
+    if (!encontrado) mensajeERROR("No se encontro el pedido No." + to_string(corre));
 }
 
 void modificarcola(cola q, int corre) {
@@ -605,16 +980,17 @@ void modificarcola(cola q, int corre) {
     bool encontrado = false;
     while (aux != NULL) {
         if (aux->pedido.correlativo == corre) {
-            cout << "\nPEDIDO NO. [" << aux->pedido.correlativo << "]" << endl;
-            cout << "\nIngrese el nuevo producto: "; getline(cin, aux->pedido.producto);
-            cout << "Ingrese la nueva cantidad de producto: "; cin >> aux->pedido.cantidad; cin.ignore();
-            cout << "Ingrese el nuevo del cliente: "; getline(cin, aux->pedido.cliente);
-            cout << "Ingrese la nueva direccion: "; getline(cin, aux->pedido.direccion);
+            color(C_TITULO); cout << "\n  Modificando pedido No. [" << aux->pedido.correlativo << "]\n\n";
+            color(C_LABEL);  cout << "  Nuevo producto    : "; color(C_VALOR); getline(cin, aux->pedido.producto);
+            color(C_LABEL);  cout << "  Nueva cantidad    : "; color(C_VALOR); cin >> aux->pedido.cantidad; cin.ignore();
+            color(C_LABEL);  cout << "  Nuevo cliente     : "; color(C_VALOR); getline(cin, aux->pedido.cliente);
+            color(C_LABEL);  cout << "  Nueva direccion   : "; color(C_VALOR); getline(cin, aux->pedido.direccion);
+            mensajeOK("Pedido modificado correctamente");
             encontrado = true;
         }
         aux = aux->siguienteCola;
     }
-    if (!encontrado) cout << "No se encontro el pedido :(";
+    if (!encontrado) mensajeERROR("No se encontro el pedido No." + to_string(corre));
     actualizarPedidos(q);
 }
 
@@ -645,18 +1021,17 @@ void cargarPedidos(cola& q) {
     ifstream archivo("pedidos.txt");
     string linea;
     if (archivo.fail()) {
-        cout << "Fallo al cargar los pedidos contacte con servicio tecnico" << endl;
+        mensajeERROR("Fallo al cargar pedidos - contacte servicio tecnico");
         exit(1);
     }
-    int maxCorrelativo = 0;
+    int maxCorr = 0;
     while (getline(archivo, linea)) {
         stringstream ss(linea);
         string dato;
         nodoCola* nuevo = new nodoCola;
         getline(ss, dato, '|');
         nuevo->pedido.correlativo = stoi(dato);
-        if (nuevo->pedido.correlativo > maxCorrelativo)
-            maxCorrelativo = nuevo->pedido.correlativo;
+        if (nuevo->pedido.correlativo > maxCorr) maxCorr = nuevo->pedido.correlativo;
         getline(ss, nuevo->pedido.producto, '|');
         getline(ss, dato, '|');
         nuevo->pedido.cantidad = stoi(dato);
@@ -668,51 +1043,44 @@ void cargarPedidos(cola& q) {
         q.ultimo = nuevo;
     }
     archivo.close();
-    correlativoPedidos = maxCorrelativo + 1;
+    correlativoPedidos = maxCorr + 1;
 }
 
 void pantallacargaPedidos(cola& q) {
-    system("cls");
-    color(14);
-    cout << "========================================\n";
-    cout << "      ACCEDIENDO A LOS PEDIDOS\n";
-    cout << "========================================\n\n";
-    color(11);
-    cout << "Cargando";
-    for (int i = 0; i < 3; i++) { cout << "."; Sleep(300); }
-    cout << "\n\n";
-    color(10);
-    cout << "[";
+    cls();
+    encabezado("CARGANDO MODULO COLA", "Pedidos de Clientes");
+    color(C_LABEL); cout << "  Accediendo a datos";
+    for (int i = 0; i < 3; i++) { Sleep(300); cout << "."; }
+    cout << "\n\n  [";
+    color(C_OK);
     for (int i = 0; i < 20; i++) {
         if (i == 5) cargarPedidos(q);
         cout << char(219);
-        Sleep(70);
+        Sleep(60);
     }
-    cout << "]";
-    Sleep(400);
-    color(7);
+    color(C_RESET); cout << "] ";
+    color(C_OK); cout << "100%\n\n";
+    color(C_RESET);
 }
 
-//   MODULO LISTA DOBLEMENTE ENLAZADA - INVENTARIO
+
+//   MODULO LISTA DOBLE (INVENTARIO)
+
 
 void insertarLista(listaDoble& lista) {
     nodoLista* nuevo = new nodoLista();
-
     nuevo->item.id = correlativoInventario++;
-    cout << "  Nombre producto  : "; getline(cin, nuevo->item.producto);
-    cout << "  Cantidad en bodega: "; cin >> nuevo->item.cantidad; cin.ignore();
-    cout << "  Cantidad minima  : "; cin >> nuevo->item.cantMinima; cin.ignore();
-    cout << "  Precio unitario  : Q"; cin >> nuevo->item.precio; cin.ignore();
+
+    color(C_LABEL); cout << "  Nombre del producto  : "; color(C_VALOR); getline(cin, nuevo->item.producto);
+    color(C_LABEL); cout << "  Cantidad en bodega   : "; color(C_VALOR); cin >> nuevo->item.cantidad; cin.ignore();
+    color(C_LABEL); cout << "  Cantidad minima      : "; color(C_VALOR); cin >> nuevo->item.cantMinima; cin.ignore();
+    color(C_LABEL); cout << "  Precio unitario   Q  : "; color(C_VALOR); cin >> nuevo->item.precio; cin.ignore();
 
     nuevo->siguiente = NULL;
     nuevo->anterior = lista.cola;
 
-    if (lista.cabeza == NULL) {
-        lista.cabeza = nuevo;
-    }
-    else {
-        lista.cola->siguiente = nuevo;
-    }
+    if (lista.cabeza == NULL) lista.cabeza = nuevo;
+    else lista.cola->siguiente = nuevo;
     lista.cola = nuevo;
     lista.cantidad++;
 }
@@ -727,90 +1095,45 @@ nodoLista* buscarNodoLista(listaDoble& lista, int id) {
 }
 
 void buscarLista(const listaDoble& lista, int id) {
-
     nodoLista* aux = lista.cabeza;
     bool encontrado = false;
-
     while (aux != NULL) {
         if (aux->item.id == id) {
-            bool bajoStock = (aux->item.cantidad <= aux->item.cantMinima);
-
-            color(11);
-            cout << "\n  +------------------------------------+";
-            color(7);
-            cout << "\n  ID          : "; color(10); cout << aux->item.id; color(7);
-            cout << "\n  Producto    : " << aux->item.producto;
-            cout << "\n  Cantidad    : ";
-            if (bajoStock) { color(12); }
-            else { color(10); }
-            cout << aux->item.cantidad; color(7);
-            cout << "\n  Cant. minima: " << aux->item.cantMinima;
-            if (bajoStock) { color(12); cout << "  << STOCK BAJO"; color(7); }
-            cout << "\n  Precio      : Q" << fixed << aux->item.precio;
-            cout << "\n  Valor total : Q" << fixed << (aux->item.precio * aux->item.cantidad);
-            color(11);
-            cout << "\n  +------------------------------------+\n";
-            color(7);
+            tarjetaInventario(aux->item, aux->anterior, aux, aux->siguiente);
             encontrado = true;
         }
         aux = aux->siguiente;
     }
-    if (!encontrado) {
-        color(12);
-        cout << "\n  No se encontro el producto con ID " << id << "\n";
-        color(7);
-    }
+    if (!encontrado) mensajeERROR("No se encontro el producto con ID " + to_string(id));
 }
 
 void eliminarLista(listaDoble& lista, int id) {
     nodoLista* aux = buscarNodoLista(lista, id);
-
     if (aux == NULL) {
-        color(12);
-        cout << "\n  No se encontro el ID " << id << "\n";
-        color(7);
+        mensajeERROR("No se encontro el ID " + to_string(id));
         return;
     }
-
-    if (aux->anterior != NULL)
-        aux->anterior->siguiente = aux->siguiente;
-    else
-        lista.cabeza = aux->siguiente;
-
-    if (aux->siguiente != NULL)
-        aux->siguiente->anterior = aux->anterior;
-    else
-        lista.cola = aux->anterior;
-
+    if (aux->anterior != NULL) aux->anterior->siguiente = aux->siguiente;
+    else lista.cabeza = aux->siguiente;
+    if (aux->siguiente != NULL) aux->siguiente->anterior = aux->anterior;
+    else lista.cola = aux->anterior;
     delete aux;
     lista.cantidad--;
-
-    color(10);
-    cout << "\n  Producto eliminado del inventario.\n";
-    color(7);
+    mensajeOK("Producto eliminado del inventario");
 }
 
 void modificarLista(listaDoble& lista, int id) {
     nodoLista* aux = buscarNodoLista(lista, id);
-
     if (aux == NULL) {
-        color(12);
-        cout << "\n  No se encontro el ID " << id << "\n";
-        color(7);
+        mensajeERROR("No se encontro el ID " + to_string(id));
         return;
     }
-
-    color(11);
-    cout << "\n  Modificando producto ID [" << aux->item.id << "] - " << aux->item.producto << "\n";
-    color(7);
-    cout << "  Nuevo nombre     : "; getline(cin, aux->item.producto);
-    cout << "  Nueva cantidad   : "; cin >> aux->item.cantidad; cin.ignore();
-    cout << "  Nueva cant. min  : "; cin >> aux->item.cantMinima; cin.ignore();
-    cout << "  Nuevo precio   Q : "; cin >> aux->item.precio; cin.ignore();
-
-    color(10);
-    cout << "\n  Producto modificado correctamente.\n";
-    color(7);
+    color(C_TITULO); cout << "\n  Modificando producto ID [" << aux->item.id << "] - " << aux->item.producto << "\n\n";
+    color(C_LABEL);  cout << "  Nuevo nombre       : "; color(C_VALOR); getline(cin, aux->item.producto);
+    color(C_LABEL);  cout << "  Nueva cantidad     : "; color(C_VALOR); cin >> aux->item.cantidad; cin.ignore();
+    color(C_LABEL);  cout << "  Nueva cant. minima : "; color(C_VALOR); cin >> aux->item.cantMinima; cin.ignore();
+    color(C_LABEL);  cout << "  Nuevo precio     Q : "; color(C_VALOR); cin >> aux->item.precio; cin.ignore();
+    mensajeOK("Producto modificado correctamente");
 }
 
 void vaciarLista(listaDoble& lista) {
@@ -820,686 +1143,442 @@ void vaciarLista(listaDoble& lista) {
         delete aux;
         aux = temp;
     }
-    lista.cabeza = NULL;
-    lista.cola = NULL;
+    lista.cabeza = lista.cola = NULL;
     lista.cantidad = 0;
 }
 
 void mostrarLista(const listaDoble& lista) {
     if (lista.cabeza == NULL) {
-        color(12);
-        cout << "\n  El inventario esta vacio.\n";
-        color(7);
+        mensajeADVERTENCIA("El inventario esta vacio");
         return;
     }
 
-    const int ANCHOS[4] = { 8, 22, 20, 16 };
-    const int COLS = 4;
+    
+    color(C_TITULO); cout << "  INVENTARIO  -  ARTICULOS DEPORTIVOS PARA CANGUROS";
+    color(C_LABEL);  cout << "  (" << lista.cantidad << " productos)\n\n";
 
-    auto lineaH = [&]() {
-        color(8);
-        cout << "  +";
-        for (int c = 0; c < COLS; c++) {
-            for (int k = 0; k < ANCHOS[c]; k++) cout << "-";
-            cout << "+";
-        }
-        cout << "\n";
-        };
+    color(C_BORDE);
+    cout << "  " << char(218)
+        << string(6, char(196)) << char(194)
+        << string(22, char(196)) << char(194)
+        << string(14, char(196)) << char(194)
+        << string(12, char(196)) << char(191) << "\n";
 
-    auto celda = [&](const string& txt, int ancho, int col) {
-        string t = " " + txt;
-        if ((int)t.size() >= ancho) t = t.substr(0, ancho - 2) + ".";
-        cout << t;
-        color(8);
-        for (int k = (int)t.size(); k < ancho; k++) cout << " ";
-        cout << "|";
-        };
+    color(C_BORDE); cout << "  " << char(179);
+    color(C_WARN);
+    cout << left << setw(6) << " ID"
+        << char(179)
+        << setw(22) << " Producto"
+        << char(179)
+        << setw(14) << " Stock/Min"
+        << char(179)
+        << setw(12) << " Precio";
+    color(C_BORDE); cout << char(179) << "\n";
 
-    // Titulo
-    color(11);
-    cout << "\n  INVENTARIO - ARTICULOS DEPORTIVOS PARA CANGUROS";
-    cout << "  (" << lista.cantidad << " productos)\n\n";
-
-    lineaH();
-    color(14);
-    cout << "  |";
-    const string hdrs[4] = { " ID", " Producto", " Stock / Min.", " Precio" };
-    for (int c = 0; c < COLS; c++) {
-        string h = hdrs[c];
-        if ((int)h.size() >= ANCHOS[c]) h = h.substr(0, ANCHOS[c] - 1);
-        cout << h;
-        for (int k = (int)h.size(); k < ANCHOS[c]; k++) cout << " ";
-        color(8); cout << "|";
-    }
-    cout << "\n";
-    lineaH();
+    color(C_BORDE);
+    cout << "  " << char(195)
+        << string(6, char(196)) << char(197)
+        << string(22, char(196)) << char(197)
+        << string(14, char(196)) << char(197)
+        << string(12, char(196)) << char(180) << "\n";
 
     nodoLista* aux = lista.cabeza;
     while (aux != NULL) {
-        bool bajoStock = (aux->item.cantidad <= aux->item.cantMinima);
+        bool bajo = (aux->item.cantidad <= aux->item.cantMinima);
+        int  cFila = bajo ? C_BAJOSTK : C_VALOR;
 
         string sId = to_string(aux->item.id);
-        string sProd = aux->item.producto;
-        string sStk = to_string(aux->item.cantidad) + " / " + to_string(aux->item.cantMinima);
+        string sProd = aux->item.producto.size() > 20 ? aux->item.producto.substr(0, 19) + "." : aux->item.producto;
+        string sStk = to_string(aux->item.cantidad) + "/" + to_string(aux->item.cantMinima);
+        char buf[16]; snprintf(buf, sizeof(buf), "Q%.2f", aux->item.precio);
 
-        char buf[32];
-        snprintf(buf, sizeof(buf), "Q%.2f", aux->item.precio);
-        string sPrecio = buf;
+        color(C_BORDE); cout << "  " << char(179);
+        color(cFila);
+        cout << left << setw(6) << (" " + sId)
+            << char(179)
+            << setw(22) << (" " + sProd)
+            << char(179)
+            << setw(14) << (" " + sStk)
+            << char(179)
+            << setw(12) << (" " + string(buf));
+        color(C_BORDE); cout << char(179) << "\n";
 
-        int cId = bajoStock ? 12 : 10;
-        int cProd = bajoStock ? 12 : 7;
-        int cStk = bajoStock ? 12 : 14;
-        int cPrice = bajoStock ? 12 : 11;
-
-        color(8); cout << "  |";
-        color(cId);    celda(sId, ANCHOS[0], 0);
-        color(cProd);  celda(sProd, ANCHOS[1], 1);
-        color(cStk);   celda(sStk, ANCHOS[2], 2);
-        color(cPrice); celda(sPrecio, ANCHOS[3], 3);
-        cout << "\n";
-
-        if (bajoStock) {
-            color(8); cout << "  |";
-            color(12);
-            string alerta = " !! STOCK BAJO !!";
-            cout << alerta;
-            int relleno = ANCHOS[0] + ANCHOS[1] + ANCHOS[2] + ANCHOS[3] + COLS - 1
-                - (int)alerta.size();
-            for (int k = 0; k < relleno; k++) cout << " ";
-            color(8); cout << "|\n";
+        if (bajo) {
+            color(C_BORDE); cout << "  " << char(179);
+            color(C_BAJOSTK); cout << left << setw(54) << "   !! STOCK BAJO - REABASTECER !!";
+            color(C_BORDE); cout << char(179) << "\n";
         }
 
-        lineaH();
+        color(C_BORDE);
+        cout << "  " << char(195)
+            << string(6, char(196)) << char(197)
+            << string(22, char(196)) << char(197)
+            << string(14, char(196)) << char(197)
+            << string(12, char(196)) << char(180) << "\n";
+
         aux = aux->siguiente;
     }
 
-    double valorTotal = 0.0;
-    int    totalUnids = 0;
+    double valorTotal = 0.0; int totalUnids = 0;
     aux = lista.cabeza;
-    while (aux != NULL) {
-        valorTotal += aux->item.precio * aux->item.cantidad;
-        totalUnids += aux->item.cantidad;
-        aux = aux->siguiente;
-    }
+    while (aux != NULL) { valorTotal += aux->item.precio * aux->item.cantidad; totalUnids += aux->item.cantidad; aux = aux->siguiente; }
 
-    char bufTotal[64];
-    snprintf(bufTotal, sizeof(bufTotal), "Q%.2f", valorTotal);
-
-    color(8);
-    cout << "  Unidades totales en bodega : "; color(11); cout << totalUnids; color(7);
-    cout << "\n";
-    color(8);
-    cout << "  Valor total del inventario : "; color(10); cout << bufTotal; color(7);
-    cout << "\n\n";
+    char bufT[32]; snprintf(bufT, sizeof(bufT), "Q%.2f", valorTotal);
+    color(C_LABEL); cout << "\n  Unidades totales : "; color(C_TITULO); cout << totalUnids;
+    color(C_LABEL); cout << "     Valor total inventario : "; color(C_PRECIO); cout << bufT << "\n\n";
+    color(C_RESET);
 }
 
-// Menu del modulo inventario (lista doble)
 void moduloLista(listaDoble& lista) {
-    int  op;
-    int  idBuscar, idEliminar, idModificar;
-    char conf;
-
+    int op;
     do {
-        system("cls");
-        color(11);
-        cout << "========================================\n";
-        cout << "   MODULO INVENTARIO (LISTA DOBLE)\n";
-        cout << "========================================\n";
-        color(8);
-        cout << "  Navegacion bidireccional entre nodos\n";
-        cout << "  Productos registrados: "; color(11); cout << lista.cantidad; color(8);
-        cout << "\n";
-        color(11);
-        cout << "========================================\n\n";
+        op = menuNavegable(
+            "MODULO LISTA DOBLE",
+            "CONTROL DE INVENTARIO",
+            { "Agregar producto",
+              "Eliminar producto",
+              "Vaciar inventario",
+              "Mostrar inventario",
+              "Buscar producto",
+              "Modificar producto",
+              "Regresar al menu principal" },
+            C_TITULO
+        );
 
-        color(7);
-        cout << "  1. Agregar producto\n";
-        cout << "  2. Eliminar producto\n";
-        cout << "  3. Vaciar inventario\n";
-        cout << "  4. Mostrar inventario (tabla)\n";
-        cout << "  5. Buscar producto\n";
-        cout << "  6. Modificar producto\n";
-        cout << "  7. Regresar\n\n";
-
-        color(8);
-        cout << "  Seleccione: ";
-        color(7);
-        cin >> op; cin.ignore();
-
+        cls();
+        int idOp;
+        char conf;
         switch (op) {
-        case 1:
+        case 0:
+            encabezado("AGREGAR PRODUCTO AL INVENTARIO");
             insertarLista(lista);
-            color(10);
-            cout << "\n  Producto agregado al inventario.\n";
-            color(7);
-            break;
-
-        case 2:
-            if (lista.cabeza == NULL) {
-                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Ingrese el ID a eliminar: ";
-                cin >> idEliminar; cin.ignore();
-                eliminarLista(lista, idEliminar);
-            }
-            break;
-
-        case 3:
-            if (lista.cabeza == NULL) {
-                color(12); cout << "\n  El inventario ya esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Seguro que deseas vaciar el inventario? (Y/N): ";
-                cin >> conf; cin.ignore();
-                if (conf == 'Y' || conf == 'y') {
-                    vaciarLista(lista);
-                    color(10); cout << "\n  Inventario vaciado exitosamente.\n"; color(7);
-                }
-            }
-            break;
-
-        case 4:
+            mensajeOK("Producto agregado correctamente");
             mostrarLista(lista);
             break;
-
-        case 5:
-            if (lista.cabeza == NULL) {
-                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Ingrese el ID a buscar: ";
-                cin >> idBuscar; cin.ignore();
-                buscarLista(lista, idBuscar);
-            }
+        case 1:
+            encabezado("ELIMINAR PRODUCTO");
+            if (lista.cabeza == NULL) { mensajeADVERTENCIA("El inventario esta vacio"); break; }
+            color(C_LABEL); cout << "  ID a eliminar: "; color(C_VALOR); cin >> idOp; cin.ignore();
+            eliminarLista(lista, idOp);
+            mostrarLista(lista);
             break;
-
-        case 6:
-            if (lista.cabeza == NULL) {
-                color(12); cout << "\n  El inventario esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Ingrese el ID a modificar: ";
-                cin >> idModificar; cin.ignore();
-                modificarLista(lista, idModificar);
-            }
+        case 2:
+            encabezado("VACIAR INVENTARIO");
+            if (lista.cabeza == NULL) { mensajeADVERTENCIA("El inventario ya esta vacio"); break; }
+            color(C_WARN); cout << "  Seguro que deseas vaciar el inventario? (Y/N): ";
+            color(C_VALOR); cin >> conf; cin.ignore();
+            if (conf == 'Y' || conf == 'y') { vaciarLista(lista); mensajeOK("Inventario vaciado"); }
+            break;
+        case 3:
+            encabezado("MOSTRAR INVENTARIO");
+            mostrarLista(lista);
+            break;
+        case 4:
+            encabezado("BUSCAR PRODUCTO");
+            if (lista.cabeza == NULL) { mensajeADVERTENCIA("El inventario esta vacio"); break; }
+            color(C_LABEL); cout << "  ID a buscar: "; color(C_VALOR); cin >> idOp; cin.ignore();
+            buscarLista(lista, idOp);
+            break;
+        case 5:
+            encabezado("MODIFICAR PRODUCTO");
+            if (lista.cabeza == NULL) { mensajeADVERTENCIA("El inventario esta vacio"); break; }
+            color(C_LABEL); cout << "  ID a modificar: "; color(C_VALOR); cin >> idOp; cin.ignore();
+            modificarLista(lista, idOp);
             break;
         }
-
-        if (op != 7) { cout << "\n"; system("pause"); }
-
-    } while (op != 7);
+        if (op != 6) { cout << "\n"; pausar(); }
+    } while (op != 6);
 }
 
-//   MODULO ARBOL BINARIO (ABB)
+
+//   MODULO ARBOL ABB
 
 void llenarNiveles(nodoArbol* nodo, int nivel, int pos, int ancho,
     vector<vector<pair<nodoArbol*, int>>>& niveles)
 {
     if (nodo == NULL) return;
-    if ((int)niveles.size() <= nivel)
-        niveles.push_back({});
+    if ((int)niveles.size() <= nivel) niveles.push_back({});
     niveles[nivel].push_back({ nodo, pos });
-    int mitad = ancho / 2;
-    if (mitad < 2) mitad = 2;
+    int mitad = max(ancho / 2, 2);
     llenarNiveles(nodo->izquierda, nivel + 1, pos - mitad / 2, mitad, niveles);
     llenarNiveles(nodo->derecha, nivel + 1, pos + mitad / 2, mitad, niveles);
 }
 
-void dibujarArbol(nodoArbol* raiz)
-{
-    if (raiz == NULL) {
-        color(12);
-        cout << "\n  El arbol esta vacio.\n";
-        color(7);
-        return;
-    }
+void dibujarArbol(nodoArbol* raiz) {
+    if (raiz == NULL) { mensajeADVERTENCIA("El arbol esta vacio"); return; }
 
     function<int(nodoArbol*)> altura = [&](nodoArbol* n) -> int {
-        if (n == NULL) return 0;
-        return 1 + max(altura(n->izquierda), altura(n->derecha));
-        };
-    int h = altura(raiz);
+        if (!n) return 0; return 1 + max(altura(n->izquierda), altura(n->derecha)); };
+    function<int(nodoArbol*)> contar = [&](nodoArbol* n) -> int {
+        if (!n) return 0; return 1 + contar(n->izquierda) + contar(n->derecha); };
 
     const int ANCHO = 78;
     vector<vector<pair<nodoArbol*, int>>> niveles;
     llenarNiveles(raiz, 0, ANCHO / 2, ANCHO, niveles);
 
-    cout << "\n";
+    color(C_TITULO); cout << "\n  --- ARBOL ABB VISUAL (ordenado por cantidad) ---\n\n";
 
     for (int i = 0; i < (int)niveles.size(); i++) {
-
         if (i > 0) {
-            string lineaConex(ANCHO, ' ');
+            string lc(ANCHO, ' ');
             for (auto& par : niveles[i]) {
-                nodoArbol* nodo = par.first;
-                int col = par.second;
-                for (auto& parPadre : niveles[i - 1]) {
-                    nodoArbol* padre = parPadre.first;
-                    int colPadre = parPadre.second;
-                    bool esHijoIzq = (padre->izquierda == nodo);
-                    bool esHijoDer = (padre->derecha == nodo);
-                    if (esHijoIzq || esHijoDer) {
-                        int desde = min(colPadre, col);
-                        int hasta = max(colPadre, col);
-                        char cChar = esHijoIzq ? '/' : '\\';
-                        int pasos = hasta - desde;
-                        if (pasos <= 0) pasos = 1;
+                nodoArbol* nodo = par.first; int col = par.second;
+                for (auto& pp : niveles[i - 1]) {
+                    nodoArbol* padre = pp.first; int cp = pp.second;
+                    bool izq = (padre->izquierda == nodo), der = (padre->derecha == nodo);
+                    if (izq || der) {
+                        int pasos = abs(cp - col);
+                        if (pasos < 1) pasos = 1;
+                        char ch = izq ? '/' : '\\';
                         for (int k = 1; k < pasos; k++) {
-                            int xk = esHijoIzq ? (colPadre - k) : (colPadre + k);
-                            if (xk >= 0 && xk < ANCHO)
-                                lineaConex[xk] = cChar;
+                            int xk = izq ? (cp - k) : (cp + k);
+                            if (xk >= 0 && xk < ANCHO) lc[xk] = ch;
                         }
                         break;
                     }
                 }
             }
-            color(8);
-            cout << lineaConex << "\n";
+            color(C_BORDE); cout << lc << "\n";
         }
-
-        string lineaNodos(ANCHO, ' ');
+        string ln(ANCHO, ' ');
         for (auto& par : niveles[i]) {
-            nodoArbol* nodo = par.first;
-            int col = par.second;
-            string etiqueta = "[" + to_string(nodo->pedido.correlativo)
-                + ":" + to_string(nodo->pedido.cantidad) + "]";
-            int inicio = col - (int)etiqueta.size() / 2;
-            if (inicio < 0) inicio = 0;
-            for (int k = 0; k < (int)etiqueta.size(); k++) {
-                int xk = inicio + k;
-                if (xk < ANCHO) lineaNodos[xk] = etiqueta[k];
-            }
+            nodoArbol* nodo = par.first; int col = par.second;
+            ostringstream tmp; tmp << (void*)nodo;
+            string d = tmp.str(); if (d.size() > 4) d = d.substr(d.size() - 4);
+            string et = "[" + to_string(nodo->pedido.correlativo) + ":" + to_string(nodo->pedido.cantidad) + "@" + d + "]";
+            int ini = max(0, col - (int)et.size() / 2);
+            for (int k = 0; k < (int)et.size() && ini + k < ANCHO; k++) ln[ini + k] = et[k];
         }
-        color(10);
-        cout << lineaNodos << "\n";
+        color(C_OK); cout << ln << "\n";
     }
-
-    color(7);
-    color(8);
-    cout << "\n  Descripcion: [correlativo:cantidad]";
-
-    function<int(nodoArbol*)> contarNodos = [&](nodoArbol* n) -> int {
-        if (n == NULL) return 0;
-        return 1 + contarNodos(n->izquierda) + contarNodos(n->derecha);
-        };
-
-    cout << "   Nodos: ";
-    color(11); cout << contarNodos(raiz);
-    color(8);  cout << "   Altura: ";
-    color(11); cout << h;
-    color(7);  cout << "\n";
+    color(C_LABEL);
+    cout << "\n  Leyenda: [correlativo:cantidad@mem]";
+    cout << "   Nodos: "; color(C_TITULO); cout << contar(raiz);
+    color(C_LABEL); cout << "   Altura: "; color(C_TITULO); cout << altura(raiz) << "\n";
+    color(C_RESET);
 }
 
 void insertarArbol(nodoArbol*& arbol) {
     pedidos p;
-    cout << "Correlativo: "; cin >> p.correlativo; cin.ignore();
-    cout << "Producto: ";    getline(cin, p.producto);
-    cout << "Cantidad: ";    cin >> p.cantidad; cin.ignore();
-    cout << "Cliente: ";     getline(cin, p.cliente);
-    cout << "Direccion: ";   getline(cin, p.direccion);
+    color(C_LABEL); cout << "  Correlativo : "; color(C_VALOR); cin >> p.correlativo; cin.ignore();
+    color(C_LABEL); cout << "  Producto    : "; color(C_VALOR); getline(cin, p.producto);
+    color(C_LABEL); cout << "  Cantidad    : "; color(C_VALOR); cin >> p.cantidad; cin.ignore();
+    color(C_LABEL); cout << "  Cliente     : "; color(C_VALOR); getline(cin, p.cliente);
+    color(C_LABEL); cout << "  Direccion   : "; color(C_VALOR); getline(cin, p.direccion);
     insertarNodo(arbol, p);
 }
 
 void insertarNodo(nodoArbol*& arbol, pedidos p) {
     if (arbol == NULL) {
         nodoArbol* nuevo = new nodoArbol();
-        nuevo->pedido = p;
-        nuevo->izquierda = NULL;
-        nuevo->derecha = NULL;
-        arbol = nuevo;
+        nuevo->pedido = p; nuevo->izquierda = nuevo->derecha = NULL;
+        arbol = nuevo; return;
     }
-    else {
-        if (p.cantidad < arbol->pedido.cantidad)
-            insertarNodo(arbol->izquierda, p);
-        else
-            insertarNodo(arbol->derecha, p);
-    }
+    if (p.cantidad < arbol->pedido.cantidad) insertarNodo(arbol->izquierda, p);
+    else insertarNodo(arbol->derecha, p);
 }
 
 nodoArbol* encontrarMinimo(nodoArbol* nodo) {
-    if (nodo == NULL) return NULL;
-    while (nodo->izquierda != NULL)
-        nodo = nodo->izquierda;
+    if (!nodo) return NULL;
+    while (nodo->izquierda) nodo = nodo->izquierda;
     return nodo;
 }
 
 nodoArbol* eliminarNodo(nodoArbol* arbol, int correlativo) {
-    if (arbol == NULL) {
-        color(12);
-        cout << "\n  No se encontro el correlativo " << correlativo << "\n";
-        color(7);
-        return NULL;
-    }
+    if (!arbol) { mensajeERROR("No se encontro el correlativo " + to_string(correlativo)); return NULL; }
     arbol->izquierda = eliminarNodo(arbol->izquierda, correlativo);
     arbol->derecha = eliminarNodo(arbol->derecha, correlativo);
-
     if (arbol->pedido.correlativo == correlativo) {
-        if (arbol->izquierda == NULL && arbol->derecha == NULL) {
-            delete arbol; return NULL;
-        }
-        if (arbol->izquierda == NULL) {
-            nodoArbol* temp = arbol->derecha; delete arbol; return temp;
-        }
-        if (arbol->derecha == NULL) {
-            nodoArbol* temp = arbol->izquierda; delete arbol; return temp;
-        }
-        nodoArbol* sucesor = encontrarMinimo(arbol->derecha);
-        arbol->pedido = sucesor->pedido;
-        arbol->derecha = eliminarNodo(arbol->derecha, sucesor->pedido.correlativo);
+        if (!arbol->izquierda && !arbol->derecha) { delete arbol; return NULL; }
+        if (!arbol->izquierda) { nodoArbol* t = arbol->derecha;   delete arbol; return t; }
+        if (!arbol->derecha) { nodoArbol* t = arbol->izquierda; delete arbol; return t; }
+        nodoArbol* suc = encontrarMinimo(arbol->derecha);
+        arbol->pedido = suc->pedido;
+        arbol->derecha = eliminarNodo(arbol->derecha, suc->pedido.correlativo);
     }
     return arbol;
 }
 
 void vaciarArbol(nodoArbol*& arbol) {
-    if (arbol == NULL) return;
+    if (!arbol) return;
     vaciarArbol(arbol->izquierda);
     vaciarArbol(arbol->derecha);
-    delete arbol;
-    arbol = NULL;
+    delete arbol; arbol = NULL;
 }
 
 void mostrarArbolOrden(nodoArbol* arbol) {
-    if (arbol == NULL) return;
+    if (!arbol) return;
     mostrarArbolOrden(arbol->izquierda);
-    color(11);
-    cout << "\n  +---------------------------------+";
-    color(7);
-    cout << "\n  Pedido No.: "; color(10); cout << arbol->pedido.correlativo; color(7);
-    cout << "\n  Cliente   : " << arbol->pedido.cliente;
-    cout << "\n  Producto  : " << arbol->pedido.producto;
-    cout << "\n  Cantidad  : " << arbol->pedido.cantidad;
-    if (arbol->pedido.cantidad >= 50) {
-        color(14); cout << "  << MAYOREO - DESCUENTO 15%"; color(7);
-    }
-    color(11);
-    cout << "\n  +---------------------------------+";
-    color(7);
+    tarjetaPedido(arbol->pedido, arbol);
+    cout << "\n";
     mostrarArbolOrden(arbol->derecha);
 }
 
 void buscarMayor(nodoArbol* arbol) {
-    if (arbol == NULL) return;
+    if (!arbol) return;
     buscarMayor(arbol->izquierda);
     if (arbol->pedido.cantidad >= 50) {
-        color(14);
-        cout << "\n  +================================+";
-        cout << "\n  PEDIDO CON DESCUENTO";
-        cout << "\n  +================================+";
-        color(7);
-        cout << "\n  Cliente : " << arbol->pedido.cliente;
-        cout << "\n  Producto: " << arbol->pedido.producto;
-        cout << "\n  Cantidad: " << arbol->pedido.cantidad;
-        color(14);
-        cout << "\n  DESCUENTO: 15%";
-        cout << "\n  +================================+";
-        color(7);
+        tarjetaPedido(arbol->pedido, arbol);
+        cout << "\n";
     }
     buscarMayor(arbol->derecha);
 }
 
 void moduloarbol(nodoArbol*& arbol) {
-    int  op;
-    int  corrEliminar;
-    char conf;
-
+    int op; char conf; int corrElim;
     do {
-        system("cls");
-        color(11);
-        cout << "========================================\n";
-        cout << "        MODULO ARBOL BINARIO (ABB)\n";
-        cout << "        (Ordenado por cantidad)\n";
-        cout << "========================================\n\n";
-        color(7);
-        cout << "  1. Insertar pedido\n";
-        cout << "  2. Eliminar pedido\n";
-        cout << "  3. Vaciar arbol\n";
-        cout << "  4. Mostrar arbol visual\n";
-        cout << "  5. Mostrar lista ordenada\n";
-        cout << "  6. Buscar pedidos de mayoreo\n";
-        cout << "  7. Regresar\n\n";
-        color(8);
-        cout << "  Seleccione: ";
-        color(7);
-        cin >> op; cin.ignore();
-
+        op = menuNavegable(
+            "MODULO ARBOL ABB",
+            "Ordenado por cantidad de pedido",
+            { "Insertar pedido",
+              "Eliminar pedido",
+              "Vaciar arbol",
+              "Mostrar arbol visual",
+              "Mostrar lista ordenada",
+              "Buscar pedidos mayoreo (>=50)",
+              "Regresar al menu principal" },
+            C_TITULO
+        );
+        cls();
         switch (op) {
-        case 1:
-            cout << "\n";
+        case 0:
+            encabezado("INSERTAR PEDIDO EN ABB");
             insertarArbol(arbol);
-            color(10); cout << "\n  Pedido insertado correctamente.\n"; color(7);
-            break;
-        case 2:
-            if (arbol == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Ingrese el correlativo a eliminar: ";
-                cin >> corrEliminar; cin.ignore();
-                arbol = eliminarNodo(arbol, corrEliminar);
-                color(10); cout << "\n  Operacion completada.\n"; color(7);
-            }
-            break;
-        case 3:
-            if (arbol == NULL) {
-                color(12); cout << "\n  El arbol ya esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Seguro que deseas vaciar el arbol? (Y/N): ";
-                cin >> conf; cin.ignore();
-                if (conf == 'Y' || conf == 'y') {
-                    vaciarArbol(arbol);
-                    color(10); cout << "\n  Arbol vaciado exitosamente.\n"; color(7);
-                }
-            }
-            break;
-        case 4:
-            cout << "\n";
+            mensajeOK("Pedido insertado correctamente");
             dibujarArbol(arbol);
             break;
-        case 5:
-            if (arbol == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  --- Pedidos en orden (menor a mayor cantidad) ---\n";
-                mostrarArbolOrden(arbol);
-                cout << "\n";
-            }
+        case 1:
+            encabezado("ELIMINAR PEDIDO DEL ABB");
+            if (!arbol) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            color(C_LABEL); cout << "  Correlativo a eliminar: "; color(C_VALOR); cin >> corrElim; cin.ignore();
+            arbol = eliminarNodo(arbol, corrElim);
+            mensajeOK("Operacion completada");
+            dibujarArbol(arbol);
             break;
-        case 6:
-            if (arbol == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  --- Pedidos con descuento (cantidad >= 50) ---\n";
-                buscarMayor(arbol);
-                cout << "\n";
-            }
+        case 2:
+            encabezado("VACIAR ARBOL ABB");
+            if (!arbol) { mensajeADVERTENCIA("El arbol ya esta vacio"); break; }
+            color(C_WARN); cout << "  Seguro? (Y/N): "; color(C_VALOR); cin >> conf; cin.ignore();
+            if (conf == 'Y' || conf == 'y') { vaciarArbol(arbol); mensajeOK("Arbol vaciado"); }
+            break;
+        case 3:
+            encabezado("VISUALIZACION DEL ARBOL ABB");
+            dibujarArbol(arbol);
+            break;
+        case 4:
+            encabezado("LISTA ORDENADA ABB (menor a mayor cantidad)");
+            if (!arbol) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            mostrarArbolOrden(arbol);
+            break;
+        case 5:
+            encabezado("PEDIDOS CON DESCUENTO MAYOREO (>= 50 unidades)");
+            if (!arbol) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            buscarMayor(arbol);
             break;
         }
-
-        if (op != 7) { cout << "\n"; system("pause"); }
-
-    } while (op != 7);
+        if (op != 6) { cout << "\n"; pausar(); }
+    } while (op != 6);
 }
+
 
 //   MODULO ARBOL AVL
 
-int alturaAVL(nodoAVL* n) {
-    if (n == NULL) return 0;
-    return n->altura;
-}
 
-int factorEquilibrio(nodoAVL* n) {
-    if (n == NULL) return 0;
-    return alturaAVL(n->izquierda) - alturaAVL(n->derecha);
-}
-
-void actualizarAltura(nodoAVL* n) {
-    if (n == NULL) return;
-    n->altura = 1 + max(alturaAVL(n->izquierda), alturaAVL(n->derecha));
-}
+int alturaAVL(nodoAVL* n) { return n ? n->altura : 0; }
+int factorEquilibrio(nodoAVL* n) { return n ? alturaAVL(n->izquierda) - alturaAVL(n->derecha) : 0; }
+void actualizarAltura(nodoAVL* n) { if (n) n->altura = 1 + max(alturaAVL(n->izquierda), alturaAVL(n->derecha)); }
 
 nodoAVL* rotarDerecha(nodoAVL* y) {
-    nodoAVL* x = y->izquierda;
-    nodoAVL* T2 = x->derecha;
-    x->derecha = y;
-    y->izquierda = T2;
-    actualizarAltura(y);
-    actualizarAltura(x);
+    nodoAVL* x = y->izquierda, * T2 = x->derecha;
+    x->derecha = y; y->izquierda = T2;
+    actualizarAltura(y); actualizarAltura(x);
     return x;
 }
-
 nodoAVL* rotarIzquierda(nodoAVL* x) {
-    nodoAVL* y = x->derecha;
-    nodoAVL* T2 = y->izquierda;
-    y->izquierda = x;
-    x->derecha = T2;
-    actualizarAltura(x);
-    actualizarAltura(y);
+    nodoAVL* y = x->derecha, * T2 = y->izquierda;
+    y->izquierda = x; x->derecha = T2;
+    actualizarAltura(x); actualizarAltura(y);
     return y;
 }
-
 nodoAVL* balancear(nodoAVL* n) {
-    if (n == NULL) return NULL;
+    if (!n) return NULL;
     actualizarAltura(n);
     int fe = factorEquilibrio(n);
-
-    if (fe > 1 && factorEquilibrio(n->izquierda) >= 0)
-        return rotarDerecha(n);
-    if (fe > 1 && factorEquilibrio(n->izquierda) < 0) {
-        n->izquierda = rotarIzquierda(n->izquierda);
-        return rotarDerecha(n);
-    }
-    if (fe < -1 && factorEquilibrio(n->derecha) <= 0)
-        return rotarIzquierda(n);
-    if (fe < -1 && factorEquilibrio(n->derecha) > 0) {
-        n->derecha = rotarDerecha(n->derecha);
-        return rotarIzquierda(n);
-    }
+    if (fe > 1 && factorEquilibrio(n->izquierda) >= 0) return rotarDerecha(n);
+    if (fe > 1 && factorEquilibrio(n->izquierda) < 0) { n->izquierda = rotarIzquierda(n->izquierda); return rotarDerecha(n); }
+    if (fe < -1 && factorEquilibrio(n->derecha) <= 0) return rotarIzquierda(n);
+    if (fe < -1 && factorEquilibrio(n->derecha)    > 0) { n->derecha = rotarDerecha(n->derecha); return rotarIzquierda(n); }
     return n;
 }
-
-nodoAVL* minimoAVL(nodoAVL* n) {
-    if (n == NULL) return NULL;
-    while (n->izquierda != NULL)
-        n = n->izquierda;
-    return n;
-}
+nodoAVL* minimoAVL(nodoAVL* n) { while (n && n->izquierda) n = n->izquierda; return n; }
 
 nodoAVL* insertarNodoAVL(nodoAVL* raiz, pedidos p, bool& insertado) {
-    if (raiz == NULL) {
+    if (!raiz) {
         nodoAVL* nuevo = new nodoAVL();
-        nuevo->pedido = p;
-        nuevo->izquierda = NULL;
-        nuevo->derecha = NULL;
-        nuevo->altura = 1;
-        insertado = true;
-        return nuevo;
+        nuevo->pedido = p; nuevo->izquierda = nuevo->derecha = NULL; nuevo->altura = 1;
+        insertado = true; return nuevo;
     }
-    if (p.cantidad < raiz->pedido.cantidad)
-        raiz->izquierda = insertarNodoAVL(raiz->izquierda, p, insertado);
-    else
-        raiz->derecha = insertarNodoAVL(raiz->derecha, p, insertado);
-
+    if (p.cantidad < raiz->pedido.cantidad) raiz->izquierda = insertarNodoAVL(raiz->izquierda, p, insertado);
+    else                                    raiz->derecha = insertarNodoAVL(raiz->derecha, p, insertado);
     return balancear(raiz);
 }
 
 void insertarAVL(nodoAVL*& avl) {
     pedidos p;
-    cout << "\n  Correlativo: "; cin >> p.correlativo; cin.ignore();
-    cout << "  Producto   : "; getline(cin, p.producto);
-    cout << "  Cantidad   : "; cin >> p.cantidad; cin.ignore();
-    cout << "  Cliente    : "; getline(cin, p.cliente);
-    cout << "  Direccion  : "; getline(cin, p.direccion);
+    color(C_LABEL); cout << "  Correlativo : "; color(C_VALOR); cin >> p.correlativo; cin.ignore();
+    color(C_LABEL); cout << "  Producto    : "; color(C_VALOR); getline(cin, p.producto);
+    color(C_LABEL); cout << "  Cantidad    : "; color(C_VALOR); cin >> p.cantidad; cin.ignore();
+    color(C_LABEL); cout << "  Cliente     : "; color(C_VALOR); getline(cin, p.cliente);
+    color(C_LABEL); cout << "  Direccion   : "; color(C_VALOR); getline(cin, p.direccion);
     bool insertado = false;
     avl = insertarNodoAVL(avl, p, insertado);
 }
 
 nodoAVL* eliminarNodoAVL(nodoAVL* raiz, int correlativo, bool& eliminado) {
-    if (raiz == NULL) return NULL;
-
+    if (!raiz) return NULL;
     raiz->izquierda = eliminarNodoAVL(raiz->izquierda, correlativo, eliminado);
     raiz->derecha = eliminarNodoAVL(raiz->derecha, correlativo, eliminado);
-
     if (raiz->pedido.correlativo == correlativo) {
         eliminado = true;
-        if (raiz->izquierda == NULL && raiz->derecha == NULL) {
-            delete raiz; return NULL;
-        }
-        if (raiz->izquierda == NULL) {
-            nodoAVL* temp = raiz->derecha; delete raiz; return balancear(temp);
-        }
-        if (raiz->derecha == NULL) {
-            nodoAVL* temp = raiz->izquierda; delete raiz; return balancear(temp);
-        }
-        nodoAVL* sucesor = minimoAVL(raiz->derecha);
-        raiz->pedido = sucesor->pedido;
+        if (!raiz->izquierda && !raiz->derecha) { delete raiz; return NULL; }
+        if (!raiz->izquierda) { nodoAVL* t = raiz->derecha;   delete raiz; return balancear(t); }
+        if (!raiz->derecha) { nodoAVL* t = raiz->izquierda; delete raiz; return balancear(t); }
+        nodoAVL* suc = minimoAVL(raiz->derecha);
+        raiz->pedido = suc->pedido;
         bool dummy = false;
-        raiz->derecha = eliminarNodoAVL(raiz->derecha, sucesor->pedido.correlativo, dummy);
+        raiz->derecha = eliminarNodoAVL(raiz->derecha, suc->pedido.correlativo, dummy);
     }
     return balancear(raiz);
 }
 
 nodoAVL* vaciarAVL_aux(nodoAVL* raiz) {
-    if (raiz == NULL) return NULL;
+    if (!raiz) return NULL;
     vaciarAVL_aux(raiz->izquierda);
     vaciarAVL_aux(raiz->derecha);
-    delete raiz;
-    return NULL;
+    delete raiz; return NULL;
 }
-
-void vaciarAVL(nodoAVL*& avl) {
-    avl = vaciarAVL_aux(avl);
-}
+void vaciarAVL(nodoAVL*& avl) { avl = vaciarAVL_aux(avl); }
 
 void mostrarAVLOrden(nodoAVL* raiz) {
-    if (raiz == NULL) return;
+    if (!raiz) return;
     mostrarAVLOrden(raiz->izquierda);
 
+    tarjetaPedido(raiz->pedido, raiz);
     int fe = factorEquilibrio(raiz);
     string feStr = (fe >= 0 ? "+" : "") + to_string(fe);
-
-    color(11);
-    cout << "\n  +---------------------------------+";
-    color(7);
-    cout << "\n  Pedido No. : "; color(10); cout << raiz->pedido.correlativo; color(7);
-    cout << "\n  Cliente    : " << raiz->pedido.cliente;
-    cout << "\n  Producto   : " << raiz->pedido.producto;
-    cout << "\n  Cantidad   : " << raiz->pedido.cantidad;
-    cout << "\n  Altura nodo: " << raiz->altura;
-    cout << "\n  F.Equilib. : ";
-    if (fe == 0) { color(10); }
-    else if (fe == 1 || fe == -1) { color(14); }
-    else { color(12); }
-    cout << feStr;
-    color(7);
-    if (raiz->pedido.cantidad >= 50) {
-        color(14); cout << "\n  >> MAYOREO - DESCUENTO 15%"; color(7);
-    }
-    color(11);
-    cout << "\n  +---------------------------------+";
-    color(7);
+    int cFE = (fe == 0) ? C_ARBOL_OK : (abs(fe) == 1 ? C_ARBOL_L : C_ARBOL_CR);
+    color(C_LABEL); cout << "     Altura: "; color(C_INFO); cout << raiz->altura;
+    color(C_LABEL); cout << "   Factor Equilibrio: "; color(cFE); cout << feStr << "\n\n";
+    color(C_RESET);
     mostrarAVLOrden(raiz->derecha);
 }
 
 void buscarMayorAVL(nodoAVL* raiz) {
-    if (raiz == NULL) return;
+    if (!raiz) return;
     buscarMayorAVL(raiz->izquierda);
     if (raiz->pedido.cantidad >= 50) {
-        color(14);
-        cout << "\n  +================================+";
-        cout << "\n  PEDIDO CON DESCUENTO";
-        cout << "\n  +================================+";
-        color(7);
-        cout << "\n  Cliente : " << raiz->pedido.cliente;
-        cout << "\n  Producto: " << raiz->pedido.producto;
-        cout << "\n  Cantidad: " << raiz->pedido.cantidad;
-        color(14);
-        cout << "\n  DESCUENTO: 15%";
-        cout << "\n  +================================+";
-        color(7);
+        tarjetaPedido(raiz->pedido, raiz);
+        cout << "\n";
     }
     buscarMayorAVL(raiz->derecha);
 }
@@ -1507,335 +1586,302 @@ void buscarMayorAVL(nodoAVL* raiz) {
 void llenarNivelesAVL(nodoAVL* nodo, int nivel, int pos, int ancho,
     vector<vector<pair<nodoAVL*, int>>>& niveles)
 {
-    if (nodo == NULL) return;
-    if ((int)niveles.size() <= nivel)
-        niveles.push_back({});
+    if (!nodo) return;
+    if ((int)niveles.size() <= nivel) niveles.push_back({});
     niveles[nivel].push_back({ nodo, pos });
-    int mitad = ancho / 2;
-    if (mitad < 2) mitad = 2;
+    int mitad = max(ancho / 2, 2);
     llenarNivelesAVL(nodo->izquierda, nivel + 1, pos - mitad / 2, mitad, niveles);
     llenarNivelesAVL(nodo->derecha, nivel + 1, pos + mitad / 2, mitad, niveles);
 }
 
-void dibujarAVL(nodoAVL* raiz)
-{
-    if (raiz == NULL) {
-        color(12);
-        cout << "\n  El arbol AVL esta vacio.\n";
-        color(7);
-        return;
-    }
+void dibujarAVL(nodoAVL* raiz) {
+    if (!raiz) { mensajeADVERTENCIA("El arbol AVL esta vacio"); return; }
 
-    function<int(nodoAVL*)> calcAltura = [&](nodoAVL* n) -> int {
-        if (n == NULL) return 0;
-        return 1 + max(calcAltura(n->izquierda), calcAltura(n->derecha));
-        };
-    int h = calcAltura(raiz);
-
-    function<int(nodoAVL*)> contarNodos = [&](nodoAVL* n) -> int {
-        if (n == NULL) return 0;
-        return 1 + contarNodos(n->izquierda) + contarNodos(n->derecha);
-        };
+    function<int(nodoAVL*)> calcH = [&](nodoAVL* n) -> int {
+        if (!n) return 0; return 1 + max(calcH(n->izquierda), calcH(n->derecha)); };
+    function<int(nodoAVL*)> contar = [&](nodoAVL* n) -> int {
+        if (!n) return 0; return 1 + contar(n->izquierda) + contar(n->derecha); };
 
     const int ANCHO = 78;
     vector<vector<pair<nodoAVL*, int>>> niveles;
     llenarNivelesAVL(raiz, 0, ANCHO / 2, ANCHO, niveles);
 
-    cout << "\n";
-    color(11);
-    cout << "  --- ARBOL AVL VISUAL ---\n";
-    color(8);
-    cout << "  Colores: ";
-    color(10); cout << "verde=bal. ";
-    color(14); cout << "amarillo=leve ";
-    color(12); cout << "rojo=critico";
-    color(7);  cout << "\n\n";
+    color(C_TITULO); cout << "\n  --- ARBOL AVL VISUAL (auto-balanceado) ---\n";
+    color(C_LABEL);  cout << "  Colores: ";
+    color(C_ARBOL_OK); cout << "verde=balanceado  ";
+    color(C_ARBOL_L);  cout << "amarillo=leve  ";
+    color(C_ARBOL_CR); cout << "rojo=critico\n\n";
 
     for (int i = 0; i < (int)niveles.size(); i++) {
-
         if (i > 0) {
-            string lineaConex(ANCHO, ' ');
+            string lc(ANCHO, ' ');
             for (auto& par : niveles[i]) {
-                nodoAVL* nodo = par.first;
-                int col = par.second;
-                for (auto& parPadre : niveles[i - 1]) {
-                    nodoAVL* padre = parPadre.first;
-                    int colPadre = parPadre.second;
-                    bool esIzq = (padre->izquierda == nodo);
-                    bool esDer = (padre->derecha == nodo);
-                    if (esIzq || esDer) {
-                        int desde = min(colPadre, col);
-                        int hasta = max(colPadre, col);
-                        char cChar = esIzq ? '/' : '\\';
-                        int pasos = hasta - desde;
-                        if (pasos <= 0) pasos = 1;
+                nodoAVL* nodo = par.first; int col = par.second;
+                for (auto& pp : niveles[i - 1]) {
+                    nodoAVL* padre = pp.first; int cp = pp.second;
+                    bool izq = (padre->izquierda == nodo), der = (padre->derecha == nodo);
+                    if (izq || der) {
+                        int pasos = abs(cp - col); if (pasos < 1) pasos = 1;
+                        char ch = izq ? '/' : '\\';
                         for (int k = 1; k < pasos; k++) {
-                            int xk = esIzq ? (colPadre - k) : (colPadre + k);
-                            if (xk >= 0 && xk < ANCHO)
-                                lineaConex[xk] = cChar;
+                            int xk = izq ? (cp - k) : (cp + k);
+                            if (xk >= 0 && xk < ANCHO) lc[xk] = ch;
                         }
                         break;
                     }
                 }
             }
-            color(8);
-            cout << lineaConex << "\n";
+            color(C_BORDE); cout << lc << "\n";
         }
 
-        struct InfoNodo { int inicio; string etiqueta; int colorNodo; };
-        vector<InfoNodo> infos;
-
+        struct Info { int ini; string et; int c; };
+        vector<Info> infos;
         for (auto& par : niveles[i]) {
-            nodoAVL* nodo = par.first;
-            int col = par.second;
+            nodoAVL* nodo = par.first; int col = par.second;
             int fe = factorEquilibrio(nodo);
             string feStr = (fe >= 0 ? "+" : "") + to_string(fe);
-            string etiqueta = "[" + to_string(nodo->pedido.correlativo)
-                + ":" + to_string(nodo->pedido.cantidad)
-                + "|" + feStr + "]";
-            int inicio = col - (int)etiqueta.size() / 2;
-            if (inicio < 0) inicio = 0;
-            int colorNodo;
-            if (fe == 0)             colorNodo = 10;
-            else if (fe == 1 || fe == -1) colorNodo = 14;
-            else                          colorNodo = 12;
-            infos.push_back({ inicio, etiqueta, colorNodo });
+            ostringstream tmp; tmp << (void*)nodo;
+            string d = tmp.str(); if (d.size() > 4) d = d.substr(d.size() - 4);
+            string et = "[" + to_string(nodo->pedido.correlativo) + ":" + to_string(nodo->pedido.cantidad)
+                + "|" + feStr + "@" + d + "]";
+            int ini = max(0, col - (int)et.size() / 2);
+            int cN = (fe == 0) ? C_ARBOL_OK : (abs(fe) == 1 ? C_ARBOL_L : C_ARBOL_CR);
+            infos.push_back({ ini, et, cN });
         }
-
-        int cursorX = 0;
+        int cur = 0;
         for (auto& info : infos) {
-            if (info.inicio > cursorX) {
-                color(7);
-                cout << string(info.inicio - cursorX, ' ');
-                cursorX = info.inicio;
-            }
-            color(info.colorNodo);
-            cout << info.etiqueta;
-            cursorX += (int)info.etiqueta.size();
+            if (info.ini > cur) { color(C_RESET); cout << string(info.ini - cur, ' '); cur = info.ini; }
+            color(info.c); cout << info.et; cur += (int)info.et.size();
         }
         cout << "\n";
     }
 
-    color(7);
-    cout << "\n";
-    color(8);
-    cout << "  Leyenda: [correlativo:cantidad|FE]   FE = factor de equilibrio\n";
-    cout << "  Nodos : "; color(11); cout << contarNodos(raiz);
-    color(8); cout << "   Altura: "; color(11); cout << h;
-    color(8); cout << "   Raiz cant.: "; color(11); cout << raiz->pedido.cantidad;
-    color(8); cout << "   FE raiz: ";
-    int feRaiz = factorEquilibrio(raiz);
-    if (feRaiz == 0) { color(10); }
-    else if (abs(feRaiz) == 1) { color(14); }
-    else { color(12); }
-    cout << (feRaiz >= 0 ? "+" : "") << feRaiz;
-    color(7); cout << "\n";
+    color(C_LABEL);
+    cout << "\n  Leyenda: [corr:cant|FE@mem]";
+    cout << "   Nodos: "; color(C_TITULO); cout << contar(raiz);
+    color(C_LABEL); cout << "   Altura: "; color(C_TITULO); cout << calcH(raiz);
+    color(C_LABEL); cout << "   Raiz cantidad: "; color(C_TITULO); cout << raiz->pedido.cantidad;
+    int feR = factorEquilibrio(raiz);
+    color(C_LABEL); cout << "   FE raiz: ";
+    color(feR == 0 ? C_ARBOL_OK : (abs(feR) == 1 ? C_ARBOL_L : C_ARBOL_CR));
+    cout << (feR >= 0 ? "+" : "") << feR << "\n";
+    color(C_RESET);
 }
 
-void moduloAVL(nodoAVL*& avl)
-{
-    int  op;
-    int  corrEliminar;
-    char conf;
-
+void moduloAVL(nodoAVL*& avl) {
+    int op; char conf; int corrElim;
     do {
-        system("cls");
-        color(11);
-        cout << "========================================\n";
-        cout << "       MODULO ARBOL AVL\n";
-        cout << "       (Auto-balanceado por cantidad)\n";
-        cout << "========================================\n";
-        color(8);
-        cout << "  El AVL se rebalancea automaticamente\n";
-        cout << "  despues de cada insercion/eliminacion\n";
-        color(11);
-        cout << "========================================\n\n";
-        color(7);
-        cout << "  1. Insertar pedido\n";
-        cout << "  2. Eliminar pedido\n";
-        cout << "  3. Vaciar arbol\n";
-        cout << "  4. Mostrar arbol visual\n";
-        cout << "  5. Mostrar lista ordenada\n";
-        cout << "  6. Buscar pedidos de mayoreo\n";
-        cout << "  7. Regresar\n\n";
-        color(8);
-        cout << "  Seleccione: ";
-        color(7);
-        cin >> op; cin.ignore();
-
+        op = menuNavegable(
+            "MODULO ARBOL AVL",
+            "Auto-balanceado por cantidad de pedido",
+            { "Insertar pedido",
+              "Eliminar pedido",
+              "Vaciar arbol",
+              "Mostrar arbol visual",
+              "Mostrar lista ordenada",
+              "Buscar pedidos mayoreo (>=50)",
+              "Regresar al menu principal" },
+            C_TITULO
+        );
+        cls();
         switch (op) {
-        case 1: {
-            cout << "\n";
-            int altAntes = alturaAVL(avl);
+        case 0: {
+            encabezado("INSERTAR PEDIDO EN AVL");
+            int ha = alturaAVL(avl);
             insertarAVL(avl);
-            int altDespues = alturaAVL(avl);
-            color(10);
-            cout << "\n  Pedido insertado y arbol rebalanceado.";
-            color(8);
-            if (altAntes != altDespues)
-                cout << "\n  (Altura cambio de " << altAntes << " a " << altDespues << ")";
-            cout << "\n";
-            color(7);
-            break;
-        }
-        case 2:
-            if (avl == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Ingrese el correlativo a eliminar: ";
-                cin >> corrEliminar; cin.ignore();
-                bool eliminado = false;
-                int altAntes = alturaAVL(avl);
-                avl = eliminarNodoAVL(avl, corrEliminar, eliminado);
-                if (eliminado) {
-                    color(10);
-                    cout << "\n  Nodo eliminado y arbol rebalanceado.";
-                    color(8);
-                    int altDespues = alturaAVL(avl);
-                    if (altAntes != altDespues)
-                        cout << "\n  (Altura cambio de " << altAntes << " a " << altDespues << ")";
-                    cout << "\n";
-                    color(7);
-                }
-                else {
-                    color(12);
-                    cout << "\n  No se encontro el correlativo " << corrEliminar << ".\n";
-                    color(7);
-                }
-            }
-            break;
-        case 3:
-            if (avl == NULL) {
-                color(12); cout << "\n  El arbol ya esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  Seguro que deseas vaciar el arbol AVL? (Y/N): ";
-                cin >> conf; cin.ignore();
-                if (conf == 'Y' || conf == 'y') {
-                    vaciarAVL(avl);
-                    color(10); cout << "\n  Arbol vaciado exitosamente.\n"; color(7);
-                }
-            }
-            break;
-        case 4:
-            cout << "\n";
+            int hd = alturaAVL(avl);
+            mensajeOK("Pedido insertado y arbol rebalanceado");
+            if (ha != hd) mensajeINFO("Altura cambio de " + to_string(ha) + " a " + to_string(hd));
             dibujarAVL(avl);
             break;
-        case 5:
-            if (avl == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  --- Lista en orden (menor a mayor cantidad) ---\n";
-                mostrarAVLOrden(avl);
-                cout << "\n";
+        }
+        case 1:
+            encabezado("ELIMINAR PEDIDO DEL AVL");
+            if (!avl) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            color(C_LABEL); cout << "  Correlativo a eliminar: "; color(C_VALOR); cin >> corrElim; cin.ignore();
+            {
+                bool elim = false; int ha = alturaAVL(avl);
+                avl = eliminarNodoAVL(avl, corrElim, elim);
+                if (elim) {
+                    int hd = alturaAVL(avl);
+                    mensajeOK("Nodo eliminado y arbol rebalanceado");
+                    if (ha != hd) mensajeINFO("Altura cambio de " + to_string(ha) + " a " + to_string(hd));
+                    dibujarAVL(avl);
+                }
+                else {
+                    mensajeERROR("No se encontro el correlativo " + to_string(corrElim));
+                }
             }
             break;
-        case 6:
-            if (avl == NULL) {
-                color(12); cout << "\n  El arbol esta vacio.\n"; color(7);
-            }
-            else {
-                cout << "\n  --- Pedidos de mayoreo (cantidad >= 50) ---\n";
-                buscarMayorAVL(avl);
-                cout << "\n";
-            }
+        case 2:
+            encabezado("VACIAR ARBOL AVL");
+            if (!avl) { mensajeADVERTENCIA("El arbol ya esta vacio"); break; }
+            color(C_WARN); cout << "  Seguro? (Y/N): "; color(C_VALOR); cin >> conf; cin.ignore();
+            if (conf == 'Y' || conf == 'y') { vaciarAVL(avl); mensajeOK("Arbol AVL vaciado"); }
+            break;
+        case 3:
+            encabezado("VISUALIZACION DEL ARBOL AVL");
+            dibujarAVL(avl);
+            break;
+        case 4:
+            encabezado("LISTA ORDENADA AVL (menor a mayor cantidad)");
+            if (!avl) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            mostrarAVLOrden(avl);
+            break;
+        case 5:
+            encabezado("PEDIDOS CON DESCUENTO MAYOREO (>= 50 unidades)");
+            if (!avl) { mensajeADVERTENCIA("El arbol esta vacio"); break; }
+            buscarMayorAVL(avl);
             break;
         }
-
-        if (op != 7) { cout << "\n"; system("pause"); }
-
-    } while (op != 7);
+        if (op != 6) { cout << "\n"; pausar(); }
+    } while (op != 6);
 }
 
-//   ESTETICA
 
-void color(int c) {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), c);
-}
+//   ESTETICA - PORTADA, DIBUJO, CARGA, LOGIN
+
 
 void portada() {
-    system("cls");
-    color(11);
-    cout << "============================================================\n";
-    cout << "            SISTEMA DE CONTROL DE INVENTARIO\n";
-    cout << "============================================================\n";
-    color(10);
-    cout << "            ARTICULOS DEPORTIVOS PARA CANGUROS \n";
-    color(11);
-    cout << "============================================================\n\n";
-    color(7);
-    cout << "------------------------------------------------------------\n";
-    cout << "                  INFORMACION DEL PROYECTO\n";
-    cout << "------------------------------------------------------------\n\n";
-    cout << "  Curso      : Programacion III\n";
-    cout << "  Lenguaje   : C++ (Estructurado)\n";
-    cout << "  Entrega    : Abril 2026\n\n";
-    color(11);
-    cout << "------------------------------------------------------------\n";
-    cout << "                  INTEGRANTES DEL GRUPO\n";
-    cout << "------------------------------------------------------------\n";
-    color(7);
-    cout << "  > Marnaby Gilbertson Geroham Cux Mazat\n";
-    cout << "       Carnet: 2290-23-3596\n";
-    cout << "  > Jose Andres Santizo Procopio\n";
-    cout << "       Carnet: 2290-24-12667\n";
-    cout << "  > Miguel Angel Santos Garcia Velasquez\n";
-    cout << "       Carnet: 2290-24-8950\n\n";
-    color(10);
-    cout << "------------------------------------------------------------\n";
-    cout << "   Presione cualquier tecla para iniciar el sistema...\n";
-    cout << "------------------------------------------------------------\n";
+    cls();
+    const int W = 62;
+    color(C_BORDE);
+    cout << char(201); for (int i = 0;i < W;i++) cout << char(205); cout << char(187) << "\n";
+
+    auto lc = [&](const string& txt, int c, bool doble = false) {
+        int pad = (W - (int)txt.size()) / 2;
+        color(C_BORDE); cout << char(doble ? 186 : 186);
+        color(c);
+        for (int i = 0;i < pad;i++) cout << " "; cout << txt;
+        for (int i = 0;i < W - pad - (int)txt.size();i++) cout << " ";
+        color(C_BORDE); cout << char(186) << "\n";
+        };
+
+    lc("SISTEMA DE CONTROL DE INVENTARIO", C_TITULO);
+    lc("KANGAROO BOXING", C_OK);
+
+    color(C_BORDE);
+    cout << char(204); for (int i = 0;i < W;i++) cout << char(205); cout << char(185) << "\n";
+    lc("INFORMACION DEL PROYECTO", C_WARN);
+    color(C_BORDE);
+    cout << char(204); for (int i = 0;i < W;i++) cout << char(196); cout << char(185) << "\n";
+
+    lc("Curso    :  Programacion III", C_VALOR);
+    lc("Lenguaje :  C++ (Estructurado)", C_VALOR);
+    lc("Entrega  :  Abril 2026", C_VALOR);
+
+    color(C_BORDE);
+    cout << char(204); for (int i = 0;i < W;i++) cout << char(196); cout << char(185) << "\n";
+    lc("INTEGRANTES DEL GRUPO", C_WARN);
+    color(C_BORDE);
+    cout << char(204); for (int i = 0;i < W;i++) cout << char(196); cout << char(185) << "\n";
+
+    lc("Marnaby G. Cux Mazat       2290-23-3596", C_VALOR);
+    lc("Jose Andres Santizo Procopio  2290-24-12667", C_VALOR);
+    lc("Miguel Angel Santos Garcia    2290-24-8950", C_VALOR);
+
+    color(C_BORDE);
+    cout << char(204); for (int i = 0;i < W;i++) cout << char(205); cout << char(185) << "\n";
+    lc("Presione cualquier tecla para continuar...", C_INFO);
+    color(C_BORDE);
+    cout << char(200); for (int i = 0;i < W;i++) cout << char(205); cout << char(188) << "\n";
+    color(C_RESET);
+
     system("pause");
 }
 
 void cargando() {
-    system("cls");
-    color(11);
-    cout << "CARGANDO SISTEMA...\n\n";
-    color(10);
-    cout << "[";
-    for (int i = 0; i < 20; i++) { cout << char(219); Sleep(100); }
-    cout << "] 100%\n\n";
-    color(14);
-    cout << "Inicializando modulo PILA...\n";  Sleep(500);
-    cout << "Inicializando modulo COLA...\n";  Sleep(500);
-    cout << "Cargando base de datos...\n"; Sleep(500);
-    cout << "2 + 2 = 6...\n"; Sleep(500);
-    cout << "Configurando entorno...\n";       Sleep(500);
-    color(10);
-    cout << "\nSistema listo!\n";
-    Sleep(800);
-    color(7);
-    cout << "\nSistema listo. Presione una tecla...";
+    cls();
+    encabezado("INICIANDO SISTEMA", "Por favor espere...");
+
+    color(C_LABEL); cout << "  [";
+    color(C_OK);
+    for (int i = 0; i < 20; i++) { cout << char(219); Sleep(80); }
+    color(C_RESET); cout << "] ";
+    color(C_OK); cout << "100%\n\n";
+
+    struct { const char* msg; int c; } pasos[] = {
+        { "Inicializando modulo PILA...",     C_INFO  },
+        { "Inicializando modulo COLA...",     C_INFO  },
+        { "Cargando base de datos...",        C_INFO  },
+        { "2 + 2 = 6...",                     C_INFO  },
+        { "Configurando entorno...",          C_INFO  },
+        { "Sistema listo!",                   C_OK    },
+    };
+    for (auto& p : pasos) {
+        color(C_LABEL); cout << "  > "; color(p.c); cout << p.msg << "\n"; Sleep(450);
+    }
+
+    cout << "\n";
+    mensajeOK("Bienvenido al sistema");
+    Sleep(500);
+    color(C_LABEL); cout << "  Presione una tecla para continuar...";
     (void)_getch();
+    color(C_RESET);
 }
 
 void dibujo() {
-    system("cls");
-    color(10);
-    cout << "                                                  _  _" << endl;
-    cout << "                                                 (\\\\( \\." << endl;
-    cout << "                                                  `.-." << endl;
-    cout << "                              _...._            _,-'   `-." << endl;
-    cout << "\\                          ,'      `-._.---.,-'       .   \\." << endl;
-    cout << " \\`.                      ,'                               `." << endl;
-    cout << "  \\ `-...__              /                           .   .:  y" << endl;
-    cout << "   `._     ``--..__     /                           ,'`---._/" << endl;
-    cout << "      `-._         ``--'                      |    /_" << endl;
-    cout << "          `.._                   _            ;   <_ \\" << endl;
-    cout << "              `--.___             `.           `-._ \\ \\" << endl;
-    cout << "                     `--<           `.     (\\ _/)/ `.\\/`" << endl;
-    cout << "                         \\            \\     `<a \\  /_/" << endl;
-    cout << "                          `.           ;      `._y" << endl;
-    cout << "                            `--.      /    _../" << endl;
-    cout << "                                \\    /__..'" << endl;
-    cout << "                                 ;  //" << endl;
-    cout << "                                <   \\\\" << endl;
-    cout << "                                 `.  \\\\" << endl;
-    cout << "                                   `. \\\\_ __" << endl;
-    cout << "                                     `.'  \\\\" << endl;
-    cout << "                                       `----''" << endl;
+    cls();
+    color(C_WARN);
+    cout << "\n";
+    cout << "                                                  _  _\n";
+    cout << "                                                 (\\\\( \\.\n";
+    cout << "                                                  `.-.\n";
+    cout << "                              _...._            _,-'   `-.\n";
+    cout << "\\                          ,'      `-._.---.,-'       .   \\.\n";
+    cout << " \\`.                      ,'                               `.\n";
+    cout << "  \\ `-...__              /                           .   .:  y\n";
+    cout << "   `._     ``--..__     /                           ,'`---._/\n";
+    cout << "      `-._         ``--'                      |    /_\n";
+    cout << "          `.._                   _            ;   <_ \\\n";
+    cout << "              `--.___             `.           `-._ \\ \\\n";
+    cout << "                     `--<           `.     (\\ _/)/ `.\\/`\n";
+    cout << "                         \\            \\     `<a \\  /_/\n";
+    cout << "                          `.           ;      `._y\n";
+    cout << "                            `--.      /    _.../\n";
+    cout << "                                \\    /__..'\n";
+    cout << "                                 ;  //\n";
+    cout << "                                <   \\\\\n";
+    cout << "                                 `.  \\\\\n";
+    cout << "                                   `. \\\\_ __\n";
+    cout << "                                     `.'  \\\\\n";
+    cout << "                                       `----''\n\n";
+    color(C_TITULO);
+    cout << "              ARTICULOS DEPORTIVOS PARA CANGUROS - KANGAROO BOXING\n\n";
+    color(C_RESET);
     system("pause");
+}
+
+bool iniciarSesion() {
+    const string USUARIO = "admin";
+    const string CONTRASENA = "admin";
+    string usuario, contrasena;
+    int intentos = 3;
+
+    while (intentos > 0) {
+        cls();
+        encabezado("INICIO DE SESION", "KANGAROO BOXING");
+
+        color(C_LABEL); cout << "  Usuario    : "; color(C_VALOR); getline(cin, usuario);
+        color(C_LABEL); cout << "  Contrasena : "; color(C_VALOR); getline(cin, contrasena);
+
+        if (usuario == USUARIO && contrasena == CONTRASENA) {
+            mensajeOK("Acceso concedido  -  Bienvenido!");
+            Sleep(900);
+            return true;
+        }
+        else {
+            intentos--;
+            mensajeERROR("Usuario o contrasena incorrectos");
+            if (intentos > 0) {
+                color(C_WARN);
+                cout << "  Intentos restantes: " << intentos << "\n";
+            }
+            Sleep(900);
+        }
+    }
+
+    mensajeERROR("Demasiados intentos fallidos - Cerrando sistema");
+    Sleep(1500);
+    return false;
 }
